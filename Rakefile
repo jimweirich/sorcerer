@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby"
 
 require 'rake/clean'
+require 'rake/testtask'
 
 task :default => :test
 
 Rake::TestTask.new(:test) do |t|
-  t.warnings = true
+  t.warning = true
   t.verbose = false
-  t.test_files = FileList['*_test.rb']
+  t.test_files = FileList['test/ruby_source/*_test.rb']
 end
