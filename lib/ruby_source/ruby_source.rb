@@ -10,6 +10,7 @@ class RubySource
     @sexp = sexp
     @source = ''
     @debug = debug
+    @word_level = 0
   end
 
   def source
@@ -30,11 +31,16 @@ class RubySource
 
   def handle_block(sexp)
     resource(sexp[1])     # Arguments
-    if sexp[2] != VOID_STATEMENT
+    if ! void?(sexp[2])
       emit(" ")
       resource(sexp[2])     # Statements
     end
     emit(" ")
+  end
+
+  def opt_parens(sexp)
+    emit(" ") unless sexp.first == :arg_paren || sexp.first == :paren
+    resource(sexp)
   end
 
   def emit(string)
@@ -46,7 +52,26 @@ class RubySource
     raise "Handler for #{sexp.first} not implemented (#{sexp.inspect})"
   end
 
+  def words(marker, sexp)
+    emit("%#{marker}{") if @word_level == 0
+    @word_level += 1
+    if sexp[1] != [:qwords_new] && sexp[1] != [:words_new]
+      resource(sexp[1])
+      emit(" ")
+    end
+    resource(sexp[2])
+    @word_level -= 1
+    emit("}") if @word_level == 0
+  end
+
   VOID_STATEMENT = [:stmts_add, [:stmts_new], [:void_stmt]]
+  VOID_BODY = [:body_stmt, VOID_STATEMENT, nil, nil, nil]
+
+  def void?(sexp)
+    sexp.nil? ||
+      sexp == VOID_STATEMENT ||
+      sexp == VOID_BODY
+  end
 
   NYI = lambda { |src, sexp| src.nyi(sexp) }
   DBG = lambda { |src, sexp| pp(sexp) }
@@ -59,8 +84,22 @@ class RubySource
   Handlers = {
     # parser keywords
 
-    :BEGIN => NYI,
-    :END => NYI,
+    :BEGIN => lambda { |src, sexp|
+      src.emit("BEGIN {")
+      unless src.void?(sexp[1])
+        src.emit(" ")
+        src.resource(sexp[1])
+      end
+      src.emit(" }")
+    },
+    :END => lambda { |src, sexp|
+      src.emit("END {")
+      unless src.void?(sexp[1])
+        src.emit(" ")
+        src.resource(sexp[1])
+      end
+      src.emit(" }")
+    },
     :alias => lambda { |src, sexp|
       src.emit("alias ")
       src.resource(sexp[1])
@@ -74,7 +113,12 @@ class RubySource
       src.resource(sexp[2])
       src.emit("]")
     },
-    :aref_field => NYI,
+    :aref_field => lambda { |src, sexp|
+      src.resource(sexp[1])
+      src.emit("[")
+      src.resource(sexp[2])
+      src.emit("]")
+    },
     :arg_ambiguous => NYI,
     :arg_paren => lambda { |src, sexp|
       src.emit("(")
@@ -174,7 +218,11 @@ class RubySource
       src.handle_block(sexp)
       src.emit("}")
     },
-    :break => NYI,
+    :break => lambda { |src, sexp|
+      src.emit("break")
+      src.emit(" ") unless sexp[1] == [:args_new]
+      src.resource(sexp[1])
+    },
     :call => lambda { |src, sexp|
       src.resource(sexp[1])
       src.emit(sexp[2])
@@ -187,7 +235,17 @@ class RubySource
       src.resource(sexp[2])
       src.emit(" end")
     },
-    :class => NYI,
+    :class => lambda { |src, sexp|
+      src.emit("class ")
+      src.resource(sexp[1])
+      if ! src.void?(sexp[2])
+        src.emit " < "
+        src.resource(sexp[2])
+      end
+      src.emit("; ")
+      src.resource(sexp[3]) unless src.void?(sexp[3])
+      src.emit("end")
+    },
     :class_name_error => NYI,
     :command => lambda { |src, sexp|
       src.resource(sexp[1])
@@ -195,14 +253,24 @@ class RubySource
       src.resource(sexp[2])
     },
     :command_call => NYI,
-    :const_path_field => NYI,
+    :const_path_field => lambda { |src, sexp|
+      src.resource(sexp[1])
+      src.emit("::")
+      src.resource(sexp[2])
+    },
     :const_path_ref => lambda { |src, sexp|
       src.resource(sexp[1])
       src.emit("::")
       src.resource(sexp[2])
     },
-    :const_ref => NYI,
-    :def => NYI,
+    :const_ref => PASS1,
+    :def => lambda { |src, sexp|
+      src.emit("def ")
+      src.resource(sexp[1])
+      src.opt_parens(sexp[2])
+      src.resource(sexp[3])
+      src.emit("end")
+    },
     :defined => lambda { |src, sexp|
       src.emit("defined?(")
       src.resource(sexp[1])
@@ -244,13 +312,28 @@ class RubySource
       src.emit("ensure ")
       if sexp[1]
         src.resource(sexp[1])
-        src.emit("; ") unless sexp[1] == VOID_STATEMENT
+        src.emit("; ") unless src.void?(sexp[1])
       end
     },
     :excessed_comma => NYI,
     :fcall => PASS1,
-    :field => NYI,
-    :for => NYI,
+    :field => lambda { |src, sexp|
+      src.resource(sexp[1])
+      src.emit(sexp[2])
+      src.resource(sexp[3])
+    },
+    :for => lambda { |src, sexp|
+      src.emit("for ")
+      src.resource(sexp[1])
+      src.emit(" in ")
+      src.resource(sexp[2])
+      src.emit(" do ")
+      unless src.void?(sexp[3])
+        src.resource(sexp[3])
+        src.emit(" ")
+      end
+      src.emit("end")
+    },
     :hash => lambda { |src, sexp|
       src.emit("{")
       src.resource(sexp[1])
@@ -276,7 +359,17 @@ class RubySource
       src.emit(" : ")
       src.resource(sexp[3])
     },
-    :lambda => NYI,
+    :lambda => lambda { |src, sexp|
+      src.emit("->")
+      src.resource(sexp[1])
+      src.emit(" {")
+      if ! src.void?(sexp[2])
+        src.emit(" ")
+        src.resource(sexp[2])
+      end
+      src.emit(" ")
+      src.emit("}")
+    },
     :magic_comment => NYI,
     :massign => lambda { |src, sexp|
       src.resource(sexp[1])
@@ -308,7 +401,16 @@ class RubySource
       src.resource(sexp[1])
       src.emit(")")
     },
-    :module => NYI,
+    :module => lambda { |src, sexp|
+      src.emit("module ")
+      src.resource(sexp[1])
+      if src.void?(sexp[2])
+        src.emit("; ")
+      else
+        src.resource(sexp[2])
+      end
+      src.emit("end")
+    },
     :mrhs_add => lambda { |src, sexp|
       src.resource(sexp[1])
       src.emit(", ")
@@ -322,7 +424,9 @@ class RubySource
     },
     :mrhs_new => NYI,
     :mrhs_new_from_args => PASS1,
-    :next => NYI,
+    :next => lambda { |src, sexp|
+      src.emit("next")
+    },
     :opassign => lambda { |src, sexp|
       src.resource(sexp[1])
       src.emit(" ")
@@ -367,9 +471,13 @@ class RubySource
     },
     :parse_error => NYI,
     :program => PASS1,
-    :qwords_add => NYI,
-    :qwords_new => NYI,
-    :redo => NYI,
+    :qwords_add => lambda { |src, sexp|
+      src.words("w", sexp)
+    },
+    :qwords_new => NOOP,
+    :redo => lambda { |src, sexp|
+      src.emit("redo")
+    },
     :regexp_literal => lambda { |src, sexp|
       src.emit("/")
       src.resource(sexp[1])
@@ -389,7 +497,7 @@ class RubySource
       end
       src.emit(";")
       if sexp[3]                # Rescue Code
-        if sexp[3] == VOID_STATEMENT
+        if src.void?(sexp[3])
           src.emit(" ")
         else
           src.emit(" ")
@@ -407,9 +515,16 @@ class RubySource
       src.emit("*")
       src.resource(sexp[1])
     },
-    :retry => NYI,
-    :return => NYI,
-    :return0 => NYI,
+    :retry => lambda { |src, sexp|
+      src.emit("retry")
+    },
+    :return => lambda { |src, sexp|
+      src.emit("return")
+      src.opt_parens(sexp[1])      
+    },
+    :return0 => lambda { |src, sexp|
+      src.emit("return")
+    },
     :sclass => NYI,
     :stmts_add => lambda { |src, sexp|
       if sexp[1] != [:stmts_new]
@@ -418,12 +533,16 @@ class RubySource
       end
       src.resource(sexp[2])
     },
-    :stmts_new => NYI,
+    :stmts_new => NOOP,
     :string_add => lambda { |src, sexp|
       src.resource(sexp[1])
       src.resource(sexp[2])
     },
-    :string_concat => NYI,
+    :string_concat => lambda { |src, sexp|
+      src.resource(sexp[1])
+      src.emit(" ")
+      src.resource(sexp[2])
+    },
     :string_content => NOOP,
     :string_dvar => NYI,
     :string_embexpr => lambda { |src, sexp|
@@ -436,7 +555,10 @@ class RubySource
       src.resource(sexp[1])
       src.emit('"')
     },
-    :super => NYI,
+    :super => lambda { |src, sexp|
+      src.emit("super")
+      src.opt_parens(sexp[1])
+    },
     :symbol => lambda { |src, sexp|
       src.emit(":")
       src.resource(sexp[1])
@@ -465,8 +587,18 @@ class RubySource
       src.emit(" unless ")
       src.resource(sexp[1])
     },
-    :until => NYI,
-    :until_mod => NYI,
+    :until => lambda { |src, sexp|
+      src.emit("until ")
+      src.resource(sexp[1])
+      src.emit(" do ")
+      src.resource(sexp[2])
+      src.emit(" end")
+    },
+    :until_mod => lambda { |src, sexp|
+      src.resource(sexp[2])
+      src.emit(" until ")
+      src.resource(sexp[1])
+    },
     :var_alias => NYI,
     :var_field => PASS1,
     :var_ref => PASS1,
@@ -493,10 +625,12 @@ class RubySource
       src.emit(" while ")
       src.resource(sexp[1])
     },
-    :word_add => NYI,
-    :word_new => NYI,
-    :words_add => NYI,
-    :words_new => NYI,
+    :word_add => PASS2,
+    :word_new => NOOP,
+    :words_add => lambda { |src, sexp|
+      src.words("W", sexp)
+    },
+    :words_new => NOOP,
     :xstring_add => lambda { |src, sexp|
       src.resource(sexp[1])
       src.resource(sexp[2])
@@ -507,9 +641,16 @@ class RubySource
       src.emit('"')
     },
     :xstring_new => NOOP,
-    :yield => NYI,
-    :yield0 => NYI,
-    :zsuper => NYI,
+    :yield => lambda { |src, sexp|
+      src.emit("yield")
+      src.opt_parens(sexp[1])
+    },
+    :yield0 => lambda { |src, sexp|
+      src.emit("yield")
+    },
+    :zsuper => lambda { |src, sexp|
+      src.emit("super")
+    },
 
     # Scanner keywords
 
@@ -528,14 +669,14 @@ class RubySource
     :@embexpr_end => NYI,
     :@embvar => NYI,
     :@float => EMIT1,
-    :@gvar => NYI,
+    :@gvar => EMIT1,
     :@heredoc_beg => NYI,
     :@heredoc_end => NYI,
     :@ident => EMIT1,
     :@ignored_nl => NYI,
     :@int => EMIT1,
     :@ivar => EMIT1,
-    :@kw => NYI,
+    :@kw => EMIT1,
     :@label => NYI,
     :@lbrace => NYI,
     :@lbracket => NYI,

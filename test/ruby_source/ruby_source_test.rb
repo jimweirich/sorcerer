@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'test/unit'
 require 'ripper'
 require 'ruby_source'
@@ -23,12 +25,22 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource "Mod::NS::Y"
   end
 
+  def test_can_source_constant_definition
+    assert_resource "X = 1"
+    assert_resource "X::Y = 1"
+    assert_resource "X::Y::Z = 1"
+  end
+
   def test_can_source_instance_variables
     assert_resource "@iv"
   end
 
   def test_can_source_class_instance_variables
    assert_resource "@@iv"
+  end
+
+  def test_can_source_globals
+   assert_resource "$g"
   end
 
   def test_can_source_method_call_without_args
@@ -111,6 +123,15 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource "meth(x, y, *rest, &code) { |a, b=1, c=x, *args, &block| one; two; three }"
   end
 
+  def test_can_source_stabby_procs
+    assert_resource "->() { }"
+    assert_resource "->(a) { }"
+    assert_resource "->(a, b) { }"
+    assert_resource "->(a, *args) { }"
+    assert_resource "->(a, *args, &block) { }"
+    assert_resource "->(a) { b }"
+  end
+
   def test_can_source_numbers
     assert_resource "1"
     assert_resource "3.14"
@@ -131,6 +152,26 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource '"my name is #{x.a("B")}"'
   end
 
+  def test_can_source_string_concat
+    assert_resource '"a" "b"'
+    assert_resource '"a" "b" "c"'
+    assert_resource '"a" "b" "c" "d"'
+  end
+
+  def test_can_source_qwords
+    assert_resource '%w{a}'
+    assert_resource '%w{a b}'
+    assert_resource '%w{a b c}'
+    assert_resource '%w{Now is the time for all good men}'
+  end
+  
+  def test_can_source_words
+    assert_resource '%W{a}'
+    assert_resource '%W{a b}'
+    assert_resource '%W{a b c}'
+    assert_resource '%W{Now is the time for all good men}'
+  end
+  
   def test_can_source_symbols
     assert_resource ":sym"
   end
@@ -158,6 +199,7 @@ class RubySourceTest < Test::Unit::TestCase
   def test_can_source_array_literals
     assert_resource "[]"
     assert_resource "[1]"
+    assert_resource "[1]"
     assert_resource "[1, 2]"
     assert_resource "[one, 2, :three, \"four\"]"
   end
@@ -165,6 +207,11 @@ class RubySourceTest < Test::Unit::TestCase
   def test_can_source_array_references
     assert_resource "a[1]"
     assert_resource "a.b[1, 4]"
+  end
+
+  def test_can_source_object_array_assignments
+    assert_resource "obj.a[a] = x"
+    assert_resource "obj.a[a, b] = x"
   end
 
   def test_can_source_hash_literals
@@ -208,6 +255,15 @@ class RubySourceTest < Test::Unit::TestCase
 
   def test_can_source_assignment
     assert_resource "a = b"
+  end
+
+  def test_can_source_object_assignment
+    assert_resource "obj.a = b"
+  end
+
+  def test_can_source_array_assignments
+    assert_resource "a[a] = x"
+    assert_resource "a[a, b] = x"
   end
 
   def test_can_source_operator_assignments
@@ -309,6 +365,24 @@ class RubySourceTest < Test::Unit::TestCase
    assert_resource "while c do body end"
   end
 
+  def test_can_source_until
+   assert_resource "until c do body end"
+  end
+
+  def test_can_source_for
+    assert_resource "for a in list do end"
+    assert_resource "for a in list do c end"
+  end
+
+  def test_can_source_break
+   assert_resource "while c do a; break if b; c end"
+   assert_resource "while c do a; break value if b; c end"
+  end
+
+  def test_can_source_next
+   assert_resource "while c do a; next if b; c end"
+  end
+
   def test_can_source_case
     assert_resource "case a when b; c end"
     assert_resource "case a when b; c when d; e end"
@@ -327,8 +401,106 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource "a while b"
   end
 
+  def test_can_source_while_modifier
+    assert_resource "a until b"
+  end
+
   def test_can_source_alias
     assert_resource "alias a b"
+  end
+
+  def test_can_source_fail
+    assert_resource "fail Err"
+    assert_resource "raise Err"
+  end
+
+  def test_can_source_retry
+    assert_resource "retry"
+  end
+  
+  def test_can_source_redo
+    assert_resource "redo"
+  end
+  
+  def test_can_source_return
+    assert_resource "return"
+    assert_resource "return value"
+  end
+  
+  def test_can_source_super
+    assert_resource "super"
+    assert_resource "super a"
+    assert_resource "super a, b"
+    assert_resource "super a, *args"
+    assert_resource "super a, *args, &block"
+    assert_resource "super()"
+    assert_resource "super(a)"
+    assert_resource "super(a, b)"
+    assert_resource "super(a, *args)"
+    assert_resource "super(a, *args, &block)"
+  end
+
+  def test_can_source_yield
+    assert_resource "yield"
+    assert_resource "yield a"
+    assert_resource "yield(a)"
+  end
+  
+  def test_can_source_self
+    assert_resource "self"
+  end
+
+  def test_can_source_def
+    assert_resource "def f a; end"
+    assert_resource "def f(); end"
+    assert_resource "def f(a); end"
+    assert_resource "def f(a, b); end"
+    assert_resource "def f(a, *args); end"
+    assert_resource "def f(a, *args, &block); end"
+    assert_resource "def f(a); x; end"
+    assert_resource "def f(a); x; y; end"
+  end
+
+  def test_can_source_class
+    assert_resource "class X; end"
+    assert_resource "class X; x; end"
+    assert_resource "class X; def f(); end; end"
+  end
+
+  def test_can_source_class_with_parent
+    assert_resource "class X < Y; end"
+    assert_resource "class X < Y; x; end"
+  end
+
+  def test_can_source_class_with_self_parent
+    assert_resource "class X < self; end"
+  end
+
+  def test_can_source_private_etc_in_class
+    assert_resource "class X; public; def f(); end; end"
+    assert_resource "class X; protected; def f(); end; end"
+    assert_resource "class X; private; def f(); end; end"
+    assert_resource "class X; def f(); end; public :f; end"
+    assert_resource "class X; def f(); end; protected :f; end"
+    assert_resource "class X; def f(); end; private :f; end"
+  end
+
+  def test_can_source_module
+    assert_resource "module X; end"
+    assert_resource "module X; x; end"
+    assert_resource "module X; def f(); end; end"
+  end
+
+  def test_can_source_BEGIN
+    assert_resource "BEGIN { }"
+    assert_resource "BEGIN { x }"
+    assert_resource "BEGIN { x; y }"
+  end
+
+  def test_can_source_BEGIN
+    assert_resource "END { }"
+    assert_resource "END { x }"
+    assert_resource "END { x; y }"
   end
 
   private
