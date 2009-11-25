@@ -10,17 +10,8 @@ rescue Exception
   nil
 end
 
-module Config
-  PROJ = 'sorcerer'
-  RUBY = 'ruby19'
-
-  BASE_RDOC_OPTIONS = [
-    '--line-numbers', '--inline-source',
-    '--main' , 'README.rdoc',
-    '--title', 'Rake -- Ruby Make'
-  ]
-end
-
+PROJ = 'sorcerer'
+RUBY = 'ruby19'
 PKG_VERSION = '0.0.1'
 
 PKG_FILES = FileList[
@@ -32,20 +23,25 @@ PKG_FILES = FileList[
   'test/**/*.rb',
 ]
   
+BASE_RDOC_OPTIONS = [
+  '--line-numbers', '--inline-source',
+  '--main' , 'README.rdoc',
+  '--title', 'Rake -- Ruby Make'
+]
 
 task :default => :test
 
 # Modify the TestTask to allow running ruby19 for the tests
 class Ruby19TestTask < Rake::TestTask
   def ruby(*args)
-    sh "#{Config::RUBY} #{args.join(' ')}"
+    sh "#{RUBY} #{args.join(' ')}"
   end
 end
 
 Ruby19TestTask.new(:test) do |t|
   t.warning = true
   t.verbose = false
-  t.test_files = FileList["test/#{Config::PROJ}/*_test.rb"]
+  t.test_files = FileList["test/#{PROJ}/*_test.rb"]
 end
 
 if ! defined?(Gem)
@@ -61,9 +57,10 @@ else
     s.files = PKG_FILES.to_a
     s.require_path = 'lib'                         # Use these for libraries.
     s.has_rdoc = true
-    s.rdoc_options = Config::BASE_RDOC_OPTIONS
+    s.rdoc_options = BASE_RDOC_OPTIONS
     s.author = "Jim Weirich"
     s.email = "jim.weirich@gmail.com"
+    s.rubyforge_project = 'sorcerer'
     s.homepage = "http://github.com/jimweirich/sorcerer"
   end
 
