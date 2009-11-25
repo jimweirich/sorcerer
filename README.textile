@@ -1,3 +1,2 @@
-h1. Sorcerer
+h1. Sorcerer -- Recovering the Source
 
-Recovering the source.
