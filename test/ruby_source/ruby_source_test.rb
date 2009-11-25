@@ -164,12 +164,17 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource '%w{a b c}'
     assert_resource '%w{Now is the time for all good men}'
   end
-  
+
   def test_can_source_words
     assert_resource '%W{a}'
     assert_resource '%W{a b}'
     assert_resource '%W{a b c}'
     assert_resource '%W{Now is the time for all good men}'
+  end
+  
+  def test_can_source_many_words
+    assert_resource '[%w{a b}, %w{c d}]'
+    assert_resource '[%W{a b}, %W{c d}]'
   end
   
   def test_can_source_symbols
@@ -349,7 +354,7 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource "if a then b elsif c then d else e end"
   end
 
-  def test_can_source_if_elsif_else
+  def test_can_source_if_elsif
     assert_resource "if a then b elsif c then d end"
   end
 
@@ -401,7 +406,7 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource "a while b"
   end
 
-  def test_can_source_while_modifier
+  def test_can_source_until_modifier
     assert_resource "a until b"
   end
 
@@ -497,10 +502,14 @@ class RubySourceTest < Test::Unit::TestCase
     assert_resource "BEGIN { x; y }"
   end
 
-  def test_can_source_BEGIN
+  def test_can_source_END
     assert_resource "END { }"
     assert_resource "END { x }"
     assert_resource "END { x; y }"
+  end
+
+  def test_can_source_then
+    assert_resource "Then { a == b }"
   end
 
   private

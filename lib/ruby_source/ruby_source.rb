@@ -52,6 +52,37 @@ class RubySource
     raise "Handler for #{sexp.first} not implemented (#{sexp.inspect})"
   end
 
+  def emit_separator(sep, first)
+    emit(sep) unless first
+    false
+  end
+
+  def params(normal_args, default_args, rest_args, unknown, block_arg)
+    first = true
+    if normal_args
+      normal_args.each do |sx|
+        first = emit_separator(", ", first)
+        resource(sx)
+      end
+    end
+    if default_args
+      default_args.each do |sx|
+        first = emit_separator(", ", first)
+        resource(sx[0])
+        emit("=")
+        resource(sx[1])
+      end
+    end
+    if rest_args
+      first = emit_separator(", ", first)
+      resource(rest_args)
+    end
+    if block_arg
+      first = emit_separator(", ", first)
+      resource(block_arg)
+    end
+  end
+  
   def words(marker, sexp)
     emit("%#{marker}{") if @word_level == 0
     @word_level += 1
@@ -436,33 +467,7 @@ class RubySource
     },
     :param_error => NYI,
     :params => lambda { |src, sexp|
-      first = true
-      if sexp[1]
-        sexp[1].each do |sx|
-          src.emit(", ") unless first
-          src.resource(sx)
-          first = false
-        end
-      end
-      if sexp[2]
-        sexp[2].each do |sx|
-          src.emit(", ") unless first
-          first = false
-          src.resource(sx[0])
-          src.emit("=")
-          src.resource(sx[1])
-        end
-      end
-      if sexp[3]
-        src.emit(", ") unless first
-        first = false
-        src.resource(sexp[3])
-      end
-      if sexp[5]
-        src.emit(", ") unless first
-        first = false
-        src.resource(sexp[5])
-      end
+      src.params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5])
     },
     :paren => lambda { |src, sexp|
       src.emit("(")
