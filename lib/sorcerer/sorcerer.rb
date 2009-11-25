@@ -2,8 +2,13 @@
 
 require 'ripper'
 
-class RubySource
+class Sorcerer
   class NoHandlerError < StandardError
+  end
+
+  # Generate the source code for teh given Ripper S-Expression.
+  def Sorcerer.source(sexp, debug=false)
+    new(sexp, debug).source
   end
 
   def initialize(sexp, debug=false)

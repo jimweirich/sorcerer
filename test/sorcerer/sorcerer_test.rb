@@ -4,14 +4,14 @@ require 'test/unit'
 require 'ripper'
 require 'sorcerer'
 
-class RubySourceTest < Test::Unit::TestCase
+class SourcerTest < Test::Unit::TestCase
   def source(string, debug=false)
     if debug
       puts
       puts "************************************************************"
     end
     sexp = Ripper::SexpBuilder.new(string).parse
-    RubySource.new(sexp, debug).source
+    Sorcerer.source(sexp, debug)
   end
 
   def test_can_source_variables
