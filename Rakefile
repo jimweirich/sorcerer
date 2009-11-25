@@ -21,6 +21,8 @@ module Config
   ]
 end
 
+PKG_VERSION = '0.0.1'
+
 PKG_FILES = FileList[
   'README.textile',
   'Rakefile',
@@ -51,7 +53,7 @@ if ! defined?(Gem)
 else
   SPEC = Gem::Specification.new do |s|
     s.name = 'sorcerer'
-    s.version = '0.0.1'
+    s.version = PKG_VERSION
     s.summary = "Generate Source from Ripper ASTs"
     s.description = <<-EOF
       Generate the original Ruby source from a Ripper-style abstract syntax tree.
