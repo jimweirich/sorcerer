@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'ripper'
-require 'ruby_source'
+require 'sorcerer'
 
 class RubySourceTest < Test::Unit::TestCase
   def source(string, debug=false)
