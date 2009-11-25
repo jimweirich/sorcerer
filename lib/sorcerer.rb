@@ -5,5 +5,5 @@ module Sorcerer
   end
 end
 
-require 'sorcerer/sorcerer'
+require 'sorcerer/resource'
 
