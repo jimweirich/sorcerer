@@ -9,8 +9,10 @@ they will be rendered in a single line format.
 
 h2. Limitations
 
-Sorcerer is Ruby 1.9 only at this point.  Technically, Sorcerer should
-work on Ruby 1.8, but since Ripper is 1.9.
+Sorcerer is only testing on Ruby 1.9.
+
+bq. <em>Technically, Sorcerer should work on Ruby 1.8, but since Ripper is
+1.9 I've only tried it on that platform.</em>
 
 h2. Examples
 
