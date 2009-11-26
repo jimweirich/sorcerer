@@ -38,11 +38,16 @@ class SubexpressionTest < Test::Unit::TestCase
   def test_method_calls_with_args
     assert_subexpressions "o.f()", ["o.f()", "o"]
     assert_subexpressions "o.f(a, b)", [
-      "o.f(a, b)", "o", "a", "b"
+      "o.f(a, b)", "a", "b", "o"
     ]
     assert_subexpressions "f(a, b)", [
       "f(a, b)", "a", "b"
     ]
+  end
+
+  def test_method_calls_with_blocks
+    assert_subexpressions "o.f { a }", ["o.f { a }", "o"]
+    assert_subexpressions "o.f(z) { a }", ["o.f(z) { a }", "z", "o"]
   end
 
   def test_array_reference
@@ -66,13 +71,13 @@ class SubexpressionTest < Test::Unit::TestCase
   end
 
   def test_complex_expression
-    assert_subexpressions "o.f(a+b, c*d, x.y, z(k, 2, 3))", [
-      "o.f(a + b, c * d, x.y, z(k, 2, 3))",
-      "o",
+    assert_subexpressions "o.f(a+b, c*d, x.y, z(k, 2, 3)) { xx }", [
+      "o.f(a + b, c * d, x.y, z(k, 2, 3)) { xx }",
       "a + b", "a", "b",
       "c * d", "c", "d", 
       "x.y", "x",
       "z(k, 2, 3)", "k",
+      "o",
     ]
   end
 

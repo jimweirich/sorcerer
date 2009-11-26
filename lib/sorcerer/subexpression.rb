@@ -32,18 +32,33 @@ module Sorcerer
 
     def tagged_sexp(sexp)
       case sexp.first
-      when :var_ref, :binary, :call, :array, :hash, :unary
+      when :var_ref, :binary, :array, :hash, :unary
         @result << sexp
         list_sexp(sexp)
       when :aref
         @result << sexp
         recur(sexp[2])
-      when :method_add_arg
+      when :brace_block
+        # ignore
+      when :call, :method_add_block, :method_add_arg
         @result << sexp
-        recur(sexp[1][1])
-        list_sexp(sexp[2])
+        method_sexp(sexp)
       else
         list_sexp(sexp)
+      end
+    end
+
+    def method_sexp(sexp)
+      case sexp.first
+      when :call
+        recur(sexp[1])
+      when :method_add_block
+        method_sexp(sexp[1])
+      when :method_add_arg
+        recur(sexp[2])
+        method_sexp(sexp[1])
+      else
+        recur(sexp)
       end
     end
   end
