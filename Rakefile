@@ -25,7 +25,7 @@ PKG_FILES = FileList[
   
 BASE_RDOC_OPTIONS = [
   '--line-numbers', '--inline-source',
-  '--main' , 'README.rdoc',
+  '--main' , 'README.textile',
   '--title', 'Rake -- Ruby Make'
 ]
 
