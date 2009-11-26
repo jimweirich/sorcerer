@@ -197,7 +197,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "/\./"
     assert_resource "/[a-z]/"
     assert_resource "/\[a-z\]/"
-    assert_resource "/#{name}/"
+    assert_resource '/#{name}/'
   end
 
   def test_can_source_range
@@ -470,7 +470,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "def f(a); x; y; end"
   end
 
-  def test_can_source_class
+  def test_can_source_class_without_parent
     assert_resource "class X; end"
     assert_resource "class X; x; end"
     assert_resource "class X; def f(); end; end"

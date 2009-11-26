@@ -21,7 +21,7 @@ module Sorcerer
     
     def resource(sexp)
       return unless sexp
-      handler = Handlers[sexp.first]
+      handler = HANDLERS[sexp.first]
       raise NoHandlerError.new(sexp.first) unless handler
       if @debug
         puts "----------------------------------------------------------"
@@ -98,11 +98,13 @@ module Sorcerer
     
     VOID_STATEMENT = [:stmts_add, [:stmts_new], [:void_stmt]]
     VOID_BODY = [:body_stmt, VOID_STATEMENT, nil, nil, nil]
+    VOID_BODY2 = [:bodystmt, VOID_STATEMENT, nil, nil, nil]
     
     def void?(sexp)
       sexp.nil? ||
         sexp == VOID_STATEMENT ||
-        sexp == VOID_BODY
+        sexp == VOID_BODY ||
+        sexp == VOID_BODY2
     end
     
     NYI = lambda { |src, sexp| src.nyi(sexp) }
@@ -113,7 +115,7 @@ module Sorcerer
     PASS2 = lambda { |src, sexp| src.resource(sexp[2]) }
     EMIT1 = lambda { |src, sexp| src.emit(sexp[1]) }
     
-    Handlers = {
+    HANDLERS = {
       # parser keywords
       
       :BEGIN => lambda { |src, sexp|
@@ -707,6 +709,7 @@ module Sorcerer
       :@words_beg => NYI,
       :@words_sep => NYI,
     }
+    HANDLERS[:bodystmt] = HANDLERS[:body_stmt]
   end
   
 end
