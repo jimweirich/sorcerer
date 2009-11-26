@@ -133,7 +133,10 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_dot_calls
-    assert_resource "p.(a)"
+    if RUBY_VERSION >= "1.9.2"
+      # This causes a bus fault on version 1.9.1
+      assert_resource "p.(a)"
+    end
   end
   
   def test_can_source_numbers
