@@ -34,19 +34,6 @@ BASE_RDOC_OPTIONS = [
 
 task :default => :test
 
-# Modify the TestTask to allow running ruby19 for the tests
-class Ruby19TestTask < Rake::TestTask
-  def ruby(*args)
-    sh "#{RUBY} #{args.join(' ')}"
-  end
-end
-
-Ruby19TestTask.new(:test) do |t|
-  t.warning = true
-  t.verbose = false
-  t.test_files = FileList["test/#{PROJ}/*_test.rb"]
-end
-
 rd = Rake::RDocTask.new("rdoc") do |rdoc|
   rdoc.rdoc_dir = 'html'
   rdoc.template = 'doc/jamis.rb'
