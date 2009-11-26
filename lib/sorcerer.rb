@@ -6,4 +6,5 @@ module Sorcerer
 end
 
 require 'sorcerer/resource'
+require 'sorcerer/subexpression'
 
