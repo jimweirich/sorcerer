@@ -15,22 +15,36 @@ module Sorcerer
     end
 
     def recur(sexp)
-      sexp.each do |s|
-        if s.is_a?(Array)
-          recur(s)
-          if interesting?(s)
-            @result << s
-          end
+      if sexp.is_a?(Array)
+        if sexp.first.is_a?(Symbol)
+          tagged_sexp(sexp)
+        else
+          list_sexp(sexp)
         end
       end
     end
 
-    def interesting?(sexp)
-      sexp.is_a?(Array) &&
-        (sexp.first == :var_ref ||
-        sexp.first == :method_add_arg ||
-        sexp.first == :regexp_literal ||
-        sexp.first == :binary)
+    def list_sexp(sexp)
+      sexp.each do |s|
+        recur(s)
+      end
+    end
+
+    def tagged_sexp(sexp)
+      case sexp.first
+      when :var_ref, :binary, :call, :array, :hash, :unary
+        list_sexp(sexp)
+        @result << sexp
+      when :aref
+        recur(sexp[2])
+        @result << sexp
+      when :method_add_arg
+        list_sexp(sexp[2])
+        recur(sexp[1][1])
+        @result << sexp
+      else
+        list_sexp(sexp)
+      end
     end
   end
 end
