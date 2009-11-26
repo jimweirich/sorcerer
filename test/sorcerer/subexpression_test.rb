@@ -9,8 +9,8 @@ class SubexpressionTest < Test::Unit::TestCase
     if debug
       pp sexp
     end
-    sub = Sorcerer.subexpressions(sexp)
-    assert_equal subexpressions, sub.subexpressions
+    subs = Sorcerer.subexpressions(sexp)
+    assert_equal subexpressions, subs
   end
 
   def test_simple
