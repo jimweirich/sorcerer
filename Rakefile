@@ -12,7 +12,7 @@ end
 
 PROJ = 'sorcerer'
 RUBY = 'ruby19'
-PKG_VERSION = '0.0.2'
+PKG_VERSION = '0.0.3'
 
 PKG_FILES = FileList[
   'README.textile',
