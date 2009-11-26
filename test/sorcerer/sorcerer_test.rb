@@ -132,6 +132,10 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "->(a) { b }"
   end
 
+  def test_can_source_dot_calls
+    assert_resource "p.(a)"
+  end
+  
   def test_can_source_numbers
     assert_resource "1"
     assert_resource "3.14"

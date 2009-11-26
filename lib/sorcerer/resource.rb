@@ -258,7 +258,7 @@ module Sorcerer
       :call => lambda { |src, sexp|
         src.resource(sexp[1])
         src.emit(sexp[2])
-        src.resource(sexp[3])
+        src.resource(sexp[3]) unless sexp[3] == :call
       },
       :case => lambda { |src, sexp|
         src.emit("case ")
