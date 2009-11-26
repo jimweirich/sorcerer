@@ -4,6 +4,8 @@ require 'rake/clean'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
+require 'lib/sorcerer/version'
+
 begin
   require 'rubygems'
   require 'rake/gempackagetask'
@@ -13,7 +15,7 @@ end
 
 PROJ = 'sorcerer'
 RUBY = ENV['RUBY19'] || 'ruby19'
-PKG_VERSION = '0.0.5'
+PKG_VERSION = Sorcerer::VERSION
 
 PKG_FILES = FileList[
   'README.textile',
