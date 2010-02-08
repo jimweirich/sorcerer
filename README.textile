@@ -14,6 +14,13 @@ Sorcerer is only testing on Ruby 1.9.
 bq. <em>Technically, Sorcerer should work on Ruby 1.8, but since Ripper is
 1.9 I've only tried it on that platform.</em>
 
+h2. Links
+
+Documents::       http://github.com/jimweirich/sorcerer
+Git Clone::       git://github.com/jimweirich/sorcerer.git
+Issue Tracking::  http://www.pivotaltracker.com/projects/36147
+Bug Reporting::   http://onestepback.org/cgi-bin/bugs.cgi?project=sorcerer
+
 h2. Examples
 
 <pre style="background: LightGray">
