@@ -46,7 +46,7 @@ module Sorcerer
     
     def emit(string)
       puts "EMITTING '#{string}'" if @debug
-      @source << string
+      @source << string.to_s
     end
     
     def nyi(sexp)

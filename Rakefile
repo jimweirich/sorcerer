@@ -4,7 +4,7 @@ require 'rake/clean'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
-require 'lib/sorcerer/version'
+require './lib/sorcerer/version'
 
 begin
   require 'rubygems'
