@@ -19,9 +19,11 @@ module Sorcerer
       @debug = options[:debug]
       @multiline = options[:multiline]
       @word_level = 0
+      @stack = []
     end
 
     def source
+      @stack = []
       resource(@sexp)
       @source
     end
@@ -34,7 +36,9 @@ module Sorcerer
         puts "----------------------------------------------------------"
         pp sexp
       end
+      @stack.push(sexp.first)
       handler.call(self, sexp)
+      @stack.pop
     end
 
     def handle_block(sexp)
@@ -52,7 +56,7 @@ module Sorcerer
     end
 
     def emit(string)
-      puts "EMITTING '#{string}'" if @debug
+      puts "EMITTING '#{string}' (#{last_handler})" if @debug
       @source << string.to_s
     end
 
