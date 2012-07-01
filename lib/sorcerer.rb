@@ -1,7 +1,7 @@
 module Sorcerer
   # Generate the source code for teh given Ripper S-Expression.
-  def self.source(sexp, debug=false)
-    Sorcerer::Resource.new(sexp, debug).source
+  def self.source(sexp, options={})
+    Sorcerer::Resource.new(sexp, options).source
   end
 
   # Generate a list of interesting subexpressions for sexp.

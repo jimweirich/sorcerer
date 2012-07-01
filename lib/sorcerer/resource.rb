@@ -13,10 +13,11 @@ module Sorcerer
     class UnexpectedSexpError < SorcererError
     end
 
-    def initialize(sexp, debug=false)
+    def initialize(sexp, options={})
       @sexp = sexp
       @source = ''
-      @debug = debug
+      @debug = options[:debug]
+      @multiline = options[:multiline]
       @word_level = 0
     end
 

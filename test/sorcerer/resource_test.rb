@@ -5,13 +5,13 @@ require 'ripper'
 require 'sorcerer'
 
 class SourcerTest < Test::Unit::TestCase
-  def source(string, debug=false)
-    if debug
+  def source(string, options={})
+    if options[:debug]
       puts
       puts "************************************************************"
     end
     sexp = Ripper::SexpBuilder.new(string).parse
-    Sorcerer.source(sexp, debug)
+    Sorcerer.source(sexp, options)
   end
 
   def test_can_source_variables
@@ -534,8 +534,8 @@ class SourcerTest < Test::Unit::TestCase
 
   private
 
-  def assert_resource(string, debug=nil)
-    assert_equal string, source(string, debug)
+  def assert_resource(string, options={})
+    assert_equal string, source(string, options)
   end
 
 end
