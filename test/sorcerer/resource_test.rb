@@ -541,6 +541,11 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource_ml "Then {~a == b; x~}"
   end
 
+  def test_can_use_ripper_sexp_output
+    sexp = Ripper.sexp("a = 1")
+    assert_equal "a = 1", Sorcerer.source(sexp)
+  end
+
   private
 
   def assert_resource(string, options={})

@@ -35,7 +35,12 @@ module Sorcerer
       obj && obj.respond_to?(:each) && obj.first.is_a?(Symbol)
     end
 
+    def nested_sexp?(obj)
+      obj && obj.respond_to?(:first) && sexp?(obj.first)
+    end
+
     def resource(sexp)
+      sexp = sexp.first if nested_sexp?(sexp)
       fail NotSexpError, "Not an S-EXPER: #{sexp.inspect}" unless sexp?(sexp)
       handler = HANDLERS[sexp.first]
       raise NoHandlerError.new(sexp.first) unless handler
