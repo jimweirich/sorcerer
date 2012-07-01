@@ -44,3 +44,50 @@ Ripper may be used to produce the s-expressions used by Sorcerer.  The following
   puts Sorcerer.source(sexp)
 </pre>
 
+h2. Options
+
+h3. Multi-Line Output
+
+If you want multi-line output of source, add the multiline option to
+the source command. 
+
+For example, given:
+
+<pre style="background: LightGrey">
+  sexp = Ripper::SexpBuilder.new("def foo; end").parse
+</pre>
+
+Then the following
+
+<pre style="background: LightGrey">
+  puts Sorcerer.source(sexp)
+</pre>
+
+generates single line output (the default):
+
+<pre style="background: LightBlue">
+def foo; end
+</pre>
+
+And the following
+
+<pre style="background: LightGrey">
+  puts Sorcerer.source(sexp, multiline: true)
+</pre>
+
+generates multi-line output
+
+<pre style="background: LightBlue">
+def foo
+end
+</pre>
+
+h3. Debugging Output
+
+If you wish to see the S-Expressions processed by Sorcerer and the
+output emitted, then use the debug option:
+
+<pre style="background: LightGrey">
+  puts Sorcerer.source(sexp, debug: true)
+</pre>
+
