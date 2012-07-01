@@ -364,30 +364,37 @@ class SourcerTest < Test::Unit::TestCase
 
   def test_can_source_if
     assert_resource "if a then b end"
+    assert_resource "if a\nb\nend", multiline: true
   end
 
   def test_can_source_if_else
     assert_resource "if a then b else c end"
-  end
-
-  def test_can_source_if_elsif_else
-    assert_resource "if a then b elsif c then d else e end"
+    assert_resource "if a\nb\nelse\nc\nend", multiline: true
   end
 
   def test_can_source_if_elsif
     assert_resource "if a then b elsif c then d end"
+    assert_resource "if a\nb\nelsif c\nd\nend", multiline: true
+  end
+
+  def test_can_source_if_elsif_else
+    assert_resource "if a then b elsif c then d else e end"
+    assert_resource "if a\nb\nelsif c\nd\nelse\ne\nend", multiline: true
   end
 
   def test_can_source_unless
     assert_resource "unless a then b end"
+    assert_resource "unless a\nb\nend", multiline: true
   end
 
   def test_can_source_unless_else
     assert_resource "unless a then b else c end"
+    assert_resource "unless a\nb\nelse\nc\nend", multiline: true
   end
 
   def test_can_source_while
-   assert_resource "while c do body end"
+    assert_resource_ml "while c; end"
+    assert_resource_ml "while c; body; end"
   end
 
   def test_can_source_until
@@ -400,12 +407,13 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_break
-   assert_resource "while c do a; break if b; c end"
-   assert_resource "while c do a; break value if b; c end"
+   assert_resource_ml "while c; a; break if b; c; end"
+   assert_resource_ml "while c; a; break value if b; c; end"
   end
 
   def test_can_source_next
-   assert_resource "while c do a; next if b; c end"
+   assert_resource_ml "while c; a; next if b; c; end"
+   assert_resource_ml "while c; a; next if b; c; end"
   end
 
   def test_can_source_case

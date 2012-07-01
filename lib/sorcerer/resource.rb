@@ -26,7 +26,7 @@ module Sorcerer
     end
 
     def source
-      @stack = []
+      @stack.clear
       resource(@sexp)
       @source
     end
@@ -125,12 +125,16 @@ module Sorcerer
         sexp == VOID_BODY2
     end
 
+    def multiline?
+      @multiline
+    end
+
     def last_handler
       @stack.last
     end
 
     def newline
-      if @multiline
+      if multiline?
         emit("\n")
       else
         emit("; ")
@@ -138,7 +142,7 @@ module Sorcerer
     end
 
     def soft_newline
-      if @multiline
+      if multiline?
         emit("\n")
       else
         emit(" ")
@@ -394,13 +398,20 @@ module Sorcerer
         src.emit('"')
       },
       :else => lambda { |src, sexp|
-        src.emit(" else ")
+        src.soft_newline
+        src.emit("else")
+        src.soft_newline
         src.resource(sexp[1])
       },
       :elsif => lambda { |src, sexp|
-        src.emit(" elsif ")
+        src.soft_newline
+        src.emit("elsif ")
         src.resource(sexp[1])
-        src.emit(" then ")
+        if src.multiline?
+          src.soft_newline
+        else
+          src.emit(" then ")
+        end
         src.resource(sexp[2])
         src.resource(sexp[3]) if sexp[3]
       },
@@ -441,10 +452,15 @@ module Sorcerer
       :if => lambda { |src, sexp|
         src.emit("if ")
         src.resource(sexp[1])
-        src.emit(" then ")
+        if src.multiline?
+          src.newline
+        else
+          src.emit(" then ")
+        end
         src.resource(sexp[2])
         src.resource(sexp[3]) if sexp[3]
-        src.emit(" end")
+        src.soft_newline
+        src.emit("end")
       },
       :if_mod => lambda { |src, sexp|
         src.resource(sexp[2])
@@ -647,10 +663,15 @@ module Sorcerer
       :unless => lambda { |src, sexp|
         src.emit("unless ")
         src.resource(sexp[1])
-        src.emit(" then ")
+        if src.multiline?
+          src.newline
+        else
+          src.emit(" then ")
+        end
         src.resource(sexp[2])
         src.resource(sexp[3]) if sexp[3]
-        src.emit(" end")
+        src.soft_newline
+        src.emit("end")
       },
       :unless_mod => lambda { |src, sexp|
         src.resource(sexp[2])
@@ -686,9 +707,12 @@ module Sorcerer
       :while => lambda { |src, sexp|
         src.emit("while ")
         src.resource(sexp[1])
-        src.emit(" do ")
-        src.resource(sexp[2])
-        src.emit(" end")
+        src.newline
+        unless src.void?(sexp[2])
+          src.resource(sexp[2])
+          src.newline
+        end
+        src.emit("end")
       },
       :while_mod => lambda { |src, sexp|
         src.resource(sexp[2])
