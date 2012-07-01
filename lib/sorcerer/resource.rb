@@ -48,14 +48,20 @@ module Sorcerer
       @stack.pop
     end
 
-    # Handle the block, return true if the statements were not void.
-    def handle_block(sexp)
+    def emit_block(sexp, do_word, end_word)
+      emit(" ")
+      emit(do_word)
       resource(sexp[1]) if sexp[1] # Arguments
       if ! void?(sexp[2])
         soft_newline
         resource(sexp[2])       # Statements
       end
-      !void?(sexp[2])
+      if !void?(sexp[2])
+        soft_newline
+      else
+        emit(" ")
+      end
+      emit(end_word)
     end
 
     def opt_parens(sexp)
@@ -320,13 +326,7 @@ module Sorcerer
         src.resource(sexp[4]) if sexp[4]  # Ensure
       },
       :brace_block => lambda { |src, sexp|
-        src.emit(" {")
-        if src.handle_block(sexp)
-          src.soft_newline
-        else
-          src.emit(" ")
-        end
-        src.emit("}")
+        src.emit_block(sexp, "{", "}")
       },
       :break => lambda { |src, sexp|
         src.emit("break")
@@ -390,13 +390,7 @@ module Sorcerer
       },
       :defs => NYI,
       :do_block => lambda { |src, sexp|
-        src.emit(" do")
-        if src.handle_block(sexp)
-          src.soft_newline
-        else
-          src.emit(" ")
-        end
-        src.emit("end")
+        src.emit_block(sexp, "do", "end")
       },
       :dot2 => lambda { |src, sexp|
         src.resource(sexp[1])
