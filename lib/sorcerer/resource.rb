@@ -330,9 +330,10 @@ module Sorcerer
       :case => lambda { |src, sexp|
         src.emit("case ")
         src.resource(sexp[1])
-        src.emit(" ")
+        src.soft_newline
         src.resource(sexp[2])
-        src.emit(" end")
+        src.newline
+        src.emit("end")
       },
       :class => lambda { |src, sexp|
         src.emit("class ")
@@ -697,7 +698,7 @@ module Sorcerer
       :when => lambda { |src, sexp|
         src.emit("when ")
         src.resource(sexp[1])
-        src.emit("; ")
+        src.newline
         src.resource(sexp[2])
         if sexp[3] && sexp[3].first == :when
           src.emit(" ")

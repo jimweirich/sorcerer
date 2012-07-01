@@ -417,9 +417,9 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_case
-    assert_resource "case a when b; c end"
-    assert_resource "case a when b; c when d; e end"
-    assert_resource "case a when b; c when d; e else f end"
+    assert_resource_ml "case a~when b; c; end"
+    assert_resource_ml "case a~when b; c when d; e; end"
+    assert_resource_ml "case a~when b; c when d; e~else~f; end"
   end
 
   def test_can_source_if_modifier
