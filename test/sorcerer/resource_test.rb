@@ -511,15 +511,15 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_module
-    assert_resource "module X; end"
-    assert_resource "module X; x; end"
-    assert_resource "module X; def f(); end; end"
+    assert_resource_ml "module X; end"
+    assert_resource_ml "module X; x; end"
+    assert_resource_ml "module X; def f(); end; end"
   end
 
   def test_can_source_BEGIN
-    assert_resource "BEGIN { }"
-    assert_resource "BEGIN { x }"
-    assert_resource "BEGIN { x; y }"
+    assert_resource_ml "BEGIN { }"
+    assert_resource_ml "BEGIN { x }"
+    assert_resource_ml "BEGIN { x; y }"
   end
 
   def test_can_source_END
