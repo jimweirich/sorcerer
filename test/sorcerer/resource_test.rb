@@ -484,6 +484,8 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_def
+    assert_resource_ml "def f; end"
+    assert_resource_ml "def f; x; end"
     assert_resource_ml "def f a; end"
     assert_resource_ml "def f(); end"
     assert_resource_ml "def f(a); end"
@@ -544,6 +546,11 @@ class SourcerTest < Test::Unit::TestCase
   def test_can_use_ripper_sexp_output
     sexp = Ripper.sexp("a = 1")
     assert_equal "a = 1", Sorcerer.source(sexp)
+  end
+
+  def test_can_handle_missing_statements
+    sexp = [:bodystmt, [:stmts_add, [:stmts_new]], nil, nil, nil]
+    assert_equal "", Sorcerer.source(sexp)
   end
 
   private

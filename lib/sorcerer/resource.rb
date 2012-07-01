@@ -69,8 +69,20 @@ module Sorcerer
       emit(end_word)
     end
 
+    def params_have_parens?(sexp)
+      sexp.first == :arg_paren || sexp.first == :paren
+    end
+
+    def params_are_empty?(sexp)
+      params = sexp
+      params = sexp[1] if sexp.first == :paren || sexp.first == :arg_paren
+      params[1].nil? || params[1].empty?
+    end
+
     def opt_parens(sexp)
-      emit(" ") unless sexp.first == :arg_paren || sexp.first == :paren
+      if !params_have_parens?(sexp) && ! params_are_empty?(sexp)
+        emit(" ")
+      end
       resource(sexp)
     end
 
@@ -127,12 +139,14 @@ module Sorcerer
     end
 
     VOID_STATEMENT = [:stmts_add, [:stmts_new], [:void_stmt]]
+    VOID_STATEMENT2 = [:stmts_add, [:stmts_new]]
     VOID_BODY = [:body_stmt, VOID_STATEMENT, nil, nil, nil]
     VOID_BODY2 = [:bodystmt, VOID_STATEMENT, nil, nil, nil]
 
     def void?(sexp)
       sexp.nil? ||
         sexp == VOID_STATEMENT ||
+        sexp == VOID_STATEMENT2 ||
         sexp == VOID_BODY ||
         sexp == VOID_BODY2
     end
@@ -632,7 +646,7 @@ module Sorcerer
           src.resource(sexp[1])
           src.newline
         end
-        src.resource(sexp[2])
+        src.resource(sexp[2]) if sexp[2]
       },
       :stmts_new => NOOP,
       :string_add => lambda { |src, sexp|
