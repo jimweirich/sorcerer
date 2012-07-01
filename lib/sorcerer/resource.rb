@@ -48,13 +48,14 @@ module Sorcerer
       @stack.pop
     end
 
+    # Handle the block, return true if the statements were not void.
     def handle_block(sexp)
       resource(sexp[1]) if sexp[1] # Arguments
       if ! void?(sexp[2])
-        emit(" ")
+        soft_newline
         resource(sexp[2])       # Statements
       end
-      emit(" ")
+      !void?(sexp[2])
     end
 
     def opt_parens(sexp)
@@ -320,7 +321,11 @@ module Sorcerer
       },
       :brace_block => lambda { |src, sexp|
         src.emit(" {")
-        src.handle_block(sexp)
+        if src.handle_block(sexp)
+          src.soft_newline
+        else
+          src.emit(" ")
+        end
         src.emit("}")
       },
       :break => lambda { |src, sexp|
@@ -386,7 +391,11 @@ module Sorcerer
       :defs => NYI,
       :do_block => lambda { |src, sexp|
         src.emit(" do")
-        src.handle_block(sexp)
+        if src.handle_block(sexp)
+          src.soft_newline
+        else
+          src.emit(" ")
+        end
         src.emit("end")
       },
       :dot2 => lambda { |src, sexp|

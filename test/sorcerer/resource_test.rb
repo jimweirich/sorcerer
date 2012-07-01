@@ -85,7 +85,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "meth &code"
     assert_resource "meth a, &code"
     assert_resource "meth a, *args, &code"
-    assert_resource "meth a, *args do |x| x.y end"
+    assert_resource "meth a, *args do |x| x.y end",
   end
 
   def test_can_source_method_with_bare_assoc
@@ -96,9 +96,9 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_method_with_do_block
-    assert_resource "meth do end"
-    assert_resource "meth do |a| end"
-    assert_resource "meth(x, y, *rest, &code) do |a, b=1, c=x, *args, &block| one; two; three end"
+    assert_resource_ml "meth do end"
+    assert_resource_ml "meth do |a| end"
+    assert_resource_ml "meth(x, y, *rest, &code) do |a, b=1, c=x, *args, &block|~one; two; three~end"
   end
 
   def test_can_source_method_with_block
@@ -537,7 +537,8 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_then
-    assert_resource "Then { a == b }"
+    assert_resource_ml "Then {~a == b~}"
+    assert_resource_ml "Then {~a == b; x~}"
   end
 
   private
