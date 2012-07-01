@@ -91,3 +91,11 @@ output emitted, then use the debug option:
   puts Sorcerer.source(sexp, debug: true)
 </pre>
 
+h2. History
+
+* 0.0.7 - Basic single line version
+* 0.1.0 - Added support for multi-line output. Improved rendering of a
+   number of constructs
+
+
+
