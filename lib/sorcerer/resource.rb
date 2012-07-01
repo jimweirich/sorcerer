@@ -10,6 +10,9 @@ module Sorcerer
     class NoHandlerError < SorcererError
     end
 
+    class NotSexpError < SorcererError
+    end
+
     class UnexpectedSexpError < SorcererError
     end
 
@@ -28,8 +31,12 @@ module Sorcerer
       @source
     end
 
+    def sexp?(obj)
+      obj && obj.respond_to?(:each) && obj.first.is_a?(Symbol)
+    end
+
     def resource(sexp)
-      return unless sexp
+      fail NotSexpError, "Not an S-EXPER: #{sexp.inspect}" unless sexp?(sexp)
       handler = HANDLERS[sexp.first]
       raise NoHandlerError.new(sexp.first) unless handler
       if @debug
@@ -42,10 +49,10 @@ module Sorcerer
     end
 
     def handle_block(sexp)
-      resource(sexp[1])     # Arguments
+      resource(sexp[1]) if sexp[1] # Arguments
       if ! void?(sexp[2])
         emit(" ")
-        resource(sexp[2])     # Statements
+        resource(sexp[2])       # Statements
       end
       emit(" ")
     end
@@ -239,7 +246,7 @@ module Sorcerer
       :args_prepend => NYI,
       :array => lambda { |src, sexp|
         src.emit("[")
-        src.resource(sexp[1])
+        src.resource(sexp[1]) if sexp[1]
         src.emit("]")
       },
       :assign => lambda { |src, sexp|
@@ -298,8 +305,8 @@ module Sorcerer
       :body_stmt => lambda { |src, sexp|
         src.resource(sexp[1])     # Main Body
         src.newline unless src.void?(sexp[1])
-        src.resource(sexp[2])   # Rescue
-        src.resource(sexp[4])   # Ensure
+        src.resource(sexp[2]) if sexp[2]  # Rescue
+        src.resource(sexp[4]) if sexp[4]  # Ensure
       },
       :brace_block => lambda { |src, sexp|
         src.emit(" {")
@@ -395,7 +402,7 @@ module Sorcerer
         src.resource(sexp[1])
         src.emit(" then ")
         src.resource(sexp[2])
-        src.resource(sexp[3])
+        src.resource(sexp[3]) if sexp[3]
       },
       :ensure => lambda { |src, sexp|
         src.emit("ensure")
@@ -428,7 +435,7 @@ module Sorcerer
       },
       :hash => lambda { |src, sexp|
         src.emit("{")
-        src.resource(sexp[1])
+        src.resource(sexp[1]) if sexp[1]
         src.emit("}")
       },
       :if => lambda { |src, sexp|
@@ -436,7 +443,7 @@ module Sorcerer
         src.resource(sexp[1])
         src.emit(" then ")
         src.resource(sexp[2])
-        src.resource(sexp[3])
+        src.resource(sexp[3]) if sexp[3]
         src.emit(" end")
       },
       :if_mod => lambda { |src, sexp|
@@ -642,7 +649,7 @@ module Sorcerer
         src.resource(sexp[1])
         src.emit(" then ")
         src.resource(sexp[2])
-        src.resource(sexp[3])
+        src.resource(sexp[3]) if sexp[3]
         src.emit(" end")
       },
       :unless_mod => lambda { |src, sexp|
@@ -674,7 +681,7 @@ module Sorcerer
         if sexp[3] && sexp[3].first == :when
           src.emit(" ")
         end
-        src.resource(sexp[3])
+        src.resource(sexp[3]) if sexp[3]
       },
       :while => lambda { |src, sexp|
         src.emit("while ")
