@@ -1,2 +1,2 @@
 source ~/.rvm/scripts/rvm
-rvm use ruby-1.9.2-head
+rvm use ruby-1.9.2-p136
