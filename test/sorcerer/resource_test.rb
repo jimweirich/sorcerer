@@ -48,7 +48,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "obj.meth()"
   end
 
-  def test_can_source_method_call_with_args 
+  def test_can_source_method_call_with_args
     assert_resource "obj.meth(a)"
     assert_resource "obj.meth(a, b)"
     assert_resource "obj.meth(a, b, c)"
@@ -97,13 +97,13 @@ class SourcerTest < Test::Unit::TestCase
 
   def test_can_source_method_with_do_block
     assert_resource "meth do end"
-    assert_resource "meth do |a| end" 
+    assert_resource "meth do |a| end"
     assert_resource "meth(x, y, *rest, &code) do |a, b=1, c=x, *args, &block| one; two; three end"
   end
 
   def test_can_source_method_with_block
     assert_resource "meth { }"
-    assert_resource "meth { |a| }" 
+    assert_resource "meth { |a| }"
     assert_resource "meth { |a, b| }"
     assert_resource "meth { |*args| }"
     assert_resource "meth { |a, *args| }"
@@ -138,7 +138,7 @@ class SourcerTest < Test::Unit::TestCase
       assert_resource "p.(a)"
     end
   end
-  
+
   def test_can_source_numbers
     assert_resource "1"
     assert_resource "3.14"
@@ -178,12 +178,12 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource '%W{a b c}'
     assert_resource '%W{Now is the time for all good men}'
   end
-  
+
   def test_can_source_many_words
     assert_resource '[%w{a b}, %w{c d}]'
     assert_resource '[%W{a b}, %W{c d}]'
   end
-  
+
   def test_can_source_symbols
     assert_resource ":sym"
   end
@@ -201,6 +201,19 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "/[a-z]/"
     assert_resource "/\[a-z\]/"
     assert_resource '/#{name}/'
+  end
+
+  def test_can_source_regular_expressions_with_alternate_delimiters
+    assert_resource "%r{a}"
+    assert_resource "%r<a>"
+    assert_resource "%r[a]"
+    assert_resource "%r(a)"
+    assert_resource "%r|a|"
+  end
+
+  def test_can_source_regular_expressions_with_flags
+    assert_resource "%r{a}im"
+    assert_resource "/a/i"
   end
 
   def test_can_source_range
@@ -252,7 +265,7 @@ class SourcerTest < Test::Unit::TestCase
   def test_can_source_trinary_expressions
     assert_resource "a ? b : c"
   end
-  
+
   def test_can_source_complex_expressions
     assert_resource "a + 1 * 3"
     assert_resource "a + b"
@@ -429,16 +442,16 @@ class SourcerTest < Test::Unit::TestCase
   def test_can_source_retry
     assert_resource "retry"
   end
-  
+
   def test_can_source_redo
     assert_resource "redo"
   end
-  
+
   def test_can_source_return
     assert_resource "return"
     assert_resource "return value"
   end
-  
+
   def test_can_source_super
     assert_resource "super"
     assert_resource "super a"
@@ -457,7 +470,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "yield a"
     assert_resource "yield(a)"
   end
-  
+
   def test_can_source_self
     assert_resource "self"
   end
@@ -524,5 +537,5 @@ class SourcerTest < Test::Unit::TestCase
   def assert_resource(string, debug=nil)
     assert_equal string, source(string, debug)
   end
-  
+
 end

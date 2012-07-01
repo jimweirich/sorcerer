@@ -2,23 +2,29 @@
 
 require 'ripper'
 
-module Sorcerer 
+module Sorcerer
   class Resource
-    class NoHandlerError < StandardError
+    class SorcererError < StandardError
     end
-    
+
+    class NoHandlerError < SorcererError
+    end
+
+    class UnexpectedSexpError < SorcererError
+    end
+
     def initialize(sexp, debug=false)
       @sexp = sexp
       @source = ''
       @debug = debug
       @word_level = 0
     end
-    
+
     def source
       resource(@sexp)
       @source
     end
-    
+
     def resource(sexp)
       return unless sexp
       handler = HANDLERS[sexp.first]
@@ -29,7 +35,7 @@ module Sorcerer
       end
       handler.call(self, sexp)
     end
-    
+
     def handle_block(sexp)
       resource(sexp[1])     # Arguments
       if ! void?(sexp[2])
@@ -38,26 +44,26 @@ module Sorcerer
       end
       emit(" ")
     end
-    
+
     def opt_parens(sexp)
       emit(" ") unless sexp.first == :arg_paren || sexp.first == :paren
       resource(sexp)
     end
-    
+
     def emit(string)
       puts "EMITTING '#{string}'" if @debug
       @source << string.to_s
     end
-    
+
     def nyi(sexp)
       raise "Handler for #{sexp.first} not implemented (#{sexp.inspect})"
     end
-    
+
     def emit_separator(sep, first)
       emit(sep) unless first
       false
     end
-    
+
     def params(normal_args, default_args, rest_args, unknown, block_arg)
       first = true
       if normal_args
@@ -83,7 +89,7 @@ module Sorcerer
         resource(block_arg)
       end
     end
-    
+
     def words(marker, sexp)
       emit("%#{marker}{") if @word_level == 0
       @word_level += 1
@@ -95,18 +101,36 @@ module Sorcerer
       @word_level -= 1
       emit("}") if @word_level == 0
     end
-    
+
     VOID_STATEMENT = [:stmts_add, [:stmts_new], [:void_stmt]]
     VOID_BODY = [:body_stmt, VOID_STATEMENT, nil, nil, nil]
     VOID_BODY2 = [:bodystmt, VOID_STATEMENT, nil, nil, nil]
-    
+
     def void?(sexp)
       sexp.nil? ||
         sexp == VOID_STATEMENT ||
         sexp == VOID_BODY ||
         sexp == VOID_BODY2
     end
-    
+
+    BALANCED_DELIMS = {
+      '}' => '{',
+      ')' => '(',
+      '>' => '<',
+      ']' => '[',
+    }
+
+    def self.determine_regexp_delimiters(sexp)
+      sym, end_delim, other = sexp
+      fail UnexpectedSexpError, "Expected :@regexp_end, got #{sym.inspect}" unless sym == :@regexp_end
+      end_delim_char = end_delim[0]
+      first_delim = BALANCED_DELIMS[end_delim_char] || end_delim_char
+      if first_delim != '/'
+        first_delim = "%r#{first_delim}"
+      end
+      [first_delim, end_delim]
+    end
+
     NYI = lambda { |src, sexp| src.nyi(sexp) }
     DBG = lambda { |src, sexp| pp(sexp) }
     NOOP = lambda { |src, sexp| }
@@ -114,10 +138,10 @@ module Sorcerer
     PASS1 = lambda { |src, sexp| src.resource(sexp[1]) }
     PASS2 = lambda { |src, sexp| src.resource(sexp[2]) }
     EMIT1 = lambda { |src, sexp| src.emit(sexp[1]) }
-    
+
     HANDLERS = {
       # parser keywords
-      
+
       :BEGIN => lambda { |src, sexp|
         src.emit("BEGIN {")
         unless src.void?(sexp[1])
@@ -214,7 +238,7 @@ module Sorcerer
       },
       :bare_assoc_hash => lambda { |src, sexp|
         first = true
-        sexp[1].each do |sx|      
+        sexp[1].each do |sx|
           src.emit(", ") unless first
           first = false
           src.resource(sx)
@@ -486,10 +510,12 @@ module Sorcerer
       :redo => lambda { |src, sexp|
         src.emit("redo")
       },
+      :regexp_add => PASS2,
       :regexp_literal => lambda { |src, sexp|
-        src.emit("/")
+        delims = determine_regexp_delimiters(sexp[2])
+        src.emit(delims[0])
         src.resource(sexp[1])
-        src.emit("/")
+        src.emit(delims[1])
       },
       :rescue => lambda { |src, sexp|
         src.emit("rescue")
@@ -501,7 +527,7 @@ module Sorcerer
             src.resource(sexp[1].first)
           end
           src.emit(" => ")
-          src.resource(sexp[2]) 
+          src.resource(sexp[2])
         end
         src.emit(";")
         if sexp[3]                # Rescue Code
@@ -528,7 +554,7 @@ module Sorcerer
       },
       :return => lambda { |src, sexp|
         src.emit("return")
-        src.opt_parens(sexp[1])      
+        src.opt_parens(sexp[1])
       },
       :return0 => lambda { |src, sexp|
         src.emit("return")
@@ -619,7 +645,7 @@ module Sorcerer
         if sexp[3] && sexp[3].first == :when
           src.emit(" ")
         end
-        src.resource(sexp[3])      
+        src.resource(sexp[3])
       },
       :while => lambda { |src, sexp|
         src.emit("while ")
@@ -659,9 +685,9 @@ module Sorcerer
       :zsuper => lambda { |src, sexp|
         src.emit("super")
       },
-      
+
       # Scanner keywords
-      
+
       :@CHAR => NYI,
       :@__end__ => NYI,
       :@backref => NYI,
@@ -711,5 +737,5 @@ module Sorcerer
     }
     HANDLERS[:bodystmt] = HANDLERS[:body_stmt]
   end
-  
+
 end
