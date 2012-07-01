@@ -118,6 +118,26 @@ module Sorcerer
         sexp == VOID_BODY2
     end
 
+    def last_handler
+      @stack.last
+    end
+
+    def newline
+      if @multiline
+        emit("\n")
+      else
+        emit("; ")
+      end
+    end
+
+    def soft_newline
+      if @multiline
+        emit("\n")
+      else
+        emit(" ")
+      end
+    end
+
     BALANCED_DELIMS = {
       '}' => '{',
       ')' => '(',
@@ -251,7 +271,12 @@ module Sorcerer
       },
       :begin => lambda { |src, sexp|
         src.emit("begin")
-        src.resource(sexp[1])
+        if src.void?(sexp[1])
+          src.emit(" ")
+        else
+          src.soft_newline
+          src.resource(sexp[1])
+        end
         src.emit("end")
       },
       :binary => lambda { |src, sexp|
@@ -272,7 +297,7 @@ module Sorcerer
       },
       :body_stmt => lambda { |src, sexp|
         src.resource(sexp[1])     # Main Body
-        src.emit("; ")
+        src.newline unless src.void?(sexp[1])
         src.resource(sexp[2])   # Rescue
         src.resource(sexp[4])   # Ensure
       },
@@ -331,6 +356,7 @@ module Sorcerer
         src.emit("def ")
         src.resource(sexp[1])
         src.opt_parens(sexp[2])
+        src.newline
         src.resource(sexp[3])
         src.emit("end")
       },
@@ -372,10 +398,13 @@ module Sorcerer
         src.resource(sexp[3])
       },
       :ensure => lambda { |src, sexp|
-        src.emit("ensure ")
-        if sexp[1]
+        src.emit("ensure")
+        if src.void?(sexp[1])
+          src.soft_newline
+        else
+          src.soft_newline
           src.resource(sexp[1])
-          src.emit("; ") unless src.void?(sexp[1])
+          src.newline unless src.void?(sexp[1])
         end
       },
       :excessed_comma => NYI,
@@ -467,8 +496,8 @@ module Sorcerer
       :module => lambda { |src, sexp|
         src.emit("module ")
         src.resource(sexp[1])
+        src.newline
         if src.void?(sexp[2])
-          src.emit("; ")
         else
           src.resource(sexp[2])
         end
@@ -534,15 +563,10 @@ module Sorcerer
           src.emit(" => ")
           src.resource(sexp[2])
         end
-        src.emit(";")
-        if sexp[3]                # Rescue Code
-          if src.void?(sexp[3])
-            src.emit(" ")
-          else
-            src.emit(" ")
-            src.resource(sexp[3])
-            src.emit("; ")
-          end
+        src.newline
+        if sexp[3] && ! src.void?(sexp[3])
+          src.resource(sexp[3])
+          src.newline
         end
       },
       :rescue_mod => lambda { |src, sexp|
@@ -566,9 +590,9 @@ module Sorcerer
       },
       :sclass => NYI,
       :stmts_add => lambda { |src, sexp|
-        if sexp[1] != [:stmts_new]
+        if sexp[1] != [:stmts_new] && ! src.void?(sexp[1])
           src.resource(sexp[1])
-          src.emit("; ")
+          src.newline
         end
         src.resource(sexp[2])
       },

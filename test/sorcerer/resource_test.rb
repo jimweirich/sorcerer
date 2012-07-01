@@ -8,7 +8,7 @@ class SourcerTest < Test::Unit::TestCase
   def source(string, options={})
     if options[:debug]
       puts
-      puts "************************************************************"
+      puts "***************************** options: #{options.inspect}"
     end
     sexp = Ripper::SexpBuilder.new(string).parse
     Sorcerer.source(sexp, options)
@@ -321,41 +321,41 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_statement_sequences
-    assert_resource "a"
-    assert_resource "a; b"
-    assert_resource "a; b; c"
+    assert_resource_ml "a"
+    assert_resource_ml "a; b"
+    assert_resource_ml "a; b; c"
   end
 
   def test_can_source_begin_end
-    assert_resource "begin; end"
-    assert_resource "begin; a; end"
-    assert_resource "begin; a(); end"
-    assert_resource "begin; a; b; c; end"
+    assert_resource_ml "begin end"
+    assert_resource_ml "begin~a; end"
+    assert_resource_ml "begin~a(); end"
+    assert_resource_ml "begin~a; b; c; end"
   end
 
   def test_can_source_begin_rescue_end
-    assert_resource "begin; rescue; end"
-    assert_resource "begin; rescue E => ex; b; end"
-    assert_resource "begin; a; rescue E => ex; b; end"
-    assert_resource "begin; a; rescue E, F => ex; b; end"
-    assert_resource "begin; a; rescue E, F => ex; b; c; end"
-    assert_resource "begin; rescue E, F => ex; b; c; end"
+    assert_resource_ml "begin~rescue; end"
+    assert_resource_ml "begin~rescue E => ex; b; end"
+    assert_resource_ml "begin~a; rescue E => ex; b; end"
+    assert_resource_ml "begin~a; rescue E, F => ex; b; end"
+    assert_resource_ml "begin~a; rescue E, F => ex; b; c; end"
+    assert_resource_ml "begin~rescue E, F => ex; b; c; end"
   end
 
   def test_can_source_begin_ensure_end
-    assert_resource "begin; ensure end"
-    assert_resource "begin; ensure b; end"
-    assert_resource "begin; a; ensure b; end"
-    assert_resource "begin; a; ensure ; b; end"
+    assert_resource_ml "begin~ensure~end"
+    assert_resource_ml "begin~ensure~b; end"
+    assert_resource_ml "begin~a; ensure~b; end"
+    assert_resource_ml "begin~a; ensure~b; end"
   end
 
   def test_can_source_begin_rescue_ensure_end
-    assert_resource "begin; rescue; end"
-    assert_resource "begin; rescue E => ex; b; ensure c; end"
-    assert_resource "begin; a; rescue E => ex; b; ensure c; end"
-    assert_resource "begin; a; rescue E, F => ex; b; ensure c; end"
-    assert_resource "begin; a; rescue E, F => ex; b; c; ensure d; end"
-    assert_resource "begin; rescue E, F => ex; b; c; ensure d; end"
+    assert_resource_ml "begin~rescue; end"
+    assert_resource_ml "begin~rescue E => ex; b; ensure~c; end"
+    assert_resource_ml "begin~a; rescue E => ex; b; ensure~c; end"
+    assert_resource_ml "begin~a; rescue E, F => ex; b; ensure~c; end"
+    assert_resource_ml "begin~a; rescue E, F => ex; b; c; ensure~d; end"
+    assert_resource_ml "begin~rescue E, F => ex; b; c; ensure~d; end"
   end
 
   def test_can_source_rescue_modifier
@@ -536,6 +536,14 @@ class SourcerTest < Test::Unit::TestCase
 
   def assert_resource(string, options={})
     assert_equal string, source(string, options)
+  end
+
+  def assert_resource_ml(string, options={})
+    expected = string.gsub(/~/, " ")
+    assert_equal expected, source(expected, options)
+
+    expected_ml = string.gsub(/~/, "\n").gsub(/; /, "\n")
+    assert_equal expected_ml, source(expected_ml, {multiline: true}.merge(options))
   end
 
 end
