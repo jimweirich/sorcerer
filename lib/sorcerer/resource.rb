@@ -180,19 +180,25 @@ module Sorcerer
 
       :BEGIN => lambda { |src, sexp|
         src.emit("BEGIN {")
-        unless src.void?(sexp[1])
-          src.emit(" ")
+        if src.void?(sexp[1])
+          src.emit " }"
+        else
+          src.soft_newline
           src.resource(sexp[1])
+          src.soft_newline
+          src.emit("}")
         end
-        src.emit(" }")
       },
       :END => lambda { |src, sexp|
         src.emit("END {")
-        unless src.void?(sexp[1])
-          src.emit(" ")
+        if src.void?(sexp[1])
+          src.emit(" }")
+        else
+          src.soft_newline
           src.resource(sexp[1])
+          src.soft_newline
+          src.emit("}")
         end
-        src.emit(" }")
       },
       :alias => lambda { |src, sexp|
         src.emit("alias ")

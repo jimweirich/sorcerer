@@ -526,14 +526,14 @@ class SourcerTest < Test::Unit::TestCase
 
   def test_can_source_BEGIN
     assert_resource_ml "BEGIN { }"
-    assert_resource_ml "BEGIN { x }"
-    assert_resource_ml "BEGIN { x; y }"
+    assert_resource_ml "BEGIN {~x~}"
+    assert_resource_ml "BEGIN {~x; y~}"
   end
 
   def test_can_source_END
-    assert_resource "END { }"
-    assert_resource "END { x }"
-    assert_resource "END { x; y }"
+    assert_resource_ml "END { }"
+    assert_resource_ml "END {~x~}"
+    assert_resource_ml "END {~x; y~}"
   end
 
   def test_can_source_then
