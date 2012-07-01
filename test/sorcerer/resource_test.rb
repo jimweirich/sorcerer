@@ -484,38 +484,38 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_def
-    assert_resource "def f a; end"
-    assert_resource "def f(); end"
-    assert_resource "def f(a); end"
-    assert_resource "def f(a, b); end"
-    assert_resource "def f(a, *args); end"
-    assert_resource "def f(a, *args, &block); end"
-    assert_resource "def f(a); x; end"
-    assert_resource "def f(a); x; y; end"
+    assert_resource_ml "def f a; end"
+    assert_resource_ml "def f(); end"
+    assert_resource_ml "def f(a); end"
+    assert_resource_ml "def f(a, b); end"
+    assert_resource_ml "def f(a, *args); end"
+    assert_resource_ml "def f(a, *args, &block); end"
+    assert_resource_ml "def f(a); x; end"
+    assert_resource_ml "def f(a); x; y; end"
   end
 
   def test_can_source_class_without_parent
-    assert_resource "class X; end"
-    assert_resource "class X; x; end"
-    assert_resource "class X; def f(); end; end"
+    assert_resource_ml "class X; end"
+    assert_resource_ml "class X; x; end"
+    assert_resource_ml "class X; def f(); end; end"
   end
 
   def test_can_source_class_with_parent
-    assert_resource "class X < Y; end"
-    assert_resource "class X < Y; x; end"
+    assert_resource_ml "class X < Y; end"
+    assert_resource_ml "class X < Y; x; end"
   end
 
   def test_can_source_class_with_self_parent
-    assert_resource "class X < self; end"
+    assert_resource_ml "class X < self; end"
   end
 
   def test_can_source_private_etc_in_class
-    assert_resource "class X; public; def f(); end; end"
-    assert_resource "class X; protected; def f(); end; end"
-    assert_resource "class X; private; def f(); end; end"
-    assert_resource "class X; def f(); end; public :f; end"
-    assert_resource "class X; def f(); end; protected :f; end"
-    assert_resource "class X; def f(); end; private :f; end"
+    assert_resource_ml "class X; public; def f(); end; end"
+    assert_resource_ml "class X; protected; def f(); end; end"
+    assert_resource_ml "class X; private; def f(); end; end"
+    assert_resource_ml "class X; def f(); end; public :f; end"
+    assert_resource_ml "class X; def f(); end; protected :f; end"
+    assert_resource_ml "class X; def f(); end; private :f; end"
   end
 
   def test_can_source_module

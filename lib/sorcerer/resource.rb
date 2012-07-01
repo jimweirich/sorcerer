@@ -342,7 +342,7 @@ module Sorcerer
           src.emit " < "
           src.resource(sexp[2])
         end
-        src.emit("; ")
+        src.newline
         src.resource(sexp[3]) unless src.void?(sexp[3])
         src.emit("end")
       },
