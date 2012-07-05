@@ -128,6 +128,14 @@ module Sorcerer
       raise "Handler for #{sexp.first} not implemented (#{sexp.inspect})"
     end
 
+    def emit_then
+      if multiline?
+        soft_newline
+      else
+        emit(" then ")
+      end
+    end
+
     def emit_separator(sep, first)
       emit(sep) unless first
       false
@@ -484,11 +492,7 @@ module Sorcerer
         src.soft_newline
         src.outdent do src.emit("elsif ") end
         src.resource(sexp[1])
-        if src.multiline?
-          src.soft_newline
-        else
-          src.emit(" then ")
-        end
+        src.emit_then
         src.resource(sexp[2])
         src.resource(sexp[3]) if sexp[3]
       },
@@ -531,11 +535,7 @@ module Sorcerer
       :if => lambda { |src, sexp|
         src.emit("if ")
         src.resource(sexp[1])
-        if src.multiline?
-          src.newline
-        else
-          src.emit(" then ")
-        end
+        src.emit_then
         src.indent do
           src.resource(sexp[2])
           src.resource(sexp[3]) if sexp[3]
@@ -747,11 +747,7 @@ module Sorcerer
       :unless => lambda { |src, sexp|
         src.emit("unless ")
         src.resource(sexp[1])
-        if src.multiline?
-          src.newline
-        else
-          src.emit(" then ")
-        end
+        src.emit_then
         src.indent do
           src.resource(sexp[2])
           src.resource(sexp[3]) if sexp[3]
