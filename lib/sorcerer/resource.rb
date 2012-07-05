@@ -36,6 +36,8 @@ module Sorcerer
       @source
     end
 
+    private
+
     def multiline?
       @multiline
     end
@@ -77,8 +79,13 @@ module Sorcerer
         puts "----------------------------------------------------------"
         pp sexp
       end
+      apply_handler(sexp, handler)
+    end
+
+    def apply_handler(sexp, handler)
       @stack.push(sexp.first)
-      handler.call(self, sexp)
+      instance_exec(sexp, &handler)
+    ensure
       @stack.pop
     end
 
@@ -228,7 +235,7 @@ module Sorcerer
       ']' => '[',
     }
 
-    def self.determine_regexp_delimiters(sexp)
+    def determine_regexp_delimiters(sexp)
       sym, end_delim, other = sexp
       fail UnexpectedSexpError, "Expected :@regexp_end, got #{sym.inspect}" unless sym == :@regexp_end
       end_delim_char = end_delim[0]
@@ -239,595 +246,595 @@ module Sorcerer
       [first_delim, end_delim]
     end
 
-    NYI = lambda { |src, sexp| src.nyi(sexp) }
-    DBG = lambda { |src, sexp| pp(sexp) }
-    NOOP = lambda { |src, sexp| }
-    SPACE = lambda { |src, sexp| src.emit(" ") }
-    PASS1 = lambda { |src, sexp| src.resource(sexp[1]) }
-    PASS2 = lambda { |src, sexp| src.resource(sexp[2]) }
-    EMIT1 = lambda { |src, sexp| src.emit(sexp[1]) }
+    NYI = lambda { |sexp| nyi(sexp) }
+    DBG = lambda { |sexp| pp(sexp) }
+    NOOP = lambda { |sexp| }
+    SPACE = lambda { |sexp| emit(" ") }
+    PASS1 = lambda { |sexp| resource(sexp[1]) }
+    PASS2 = lambda { |sexp| resource(sexp[2]) }
+    EMIT1 = lambda { |sexp| emit(sexp[1]) }
 
     HANDLERS = {
       # parser keywords
 
-      :BEGIN => lambda { |src, sexp|
-        src.emit("BEGIN {")
-        if src.void?(sexp[1])
-          src.emit " }"
+      :BEGIN => lambda { |sexp|
+        emit("BEGIN {")
+        if void?(sexp[1])
+          emit " }"
         else
-          src.soft_newline
-          src.indent do
-            src.resource(sexp[1])
-            src.soft_newline
+          soft_newline
+          indent do
+            resource(sexp[1])
+            soft_newline
           end
-          src.emit("}")
+          emit("}")
         end
       },
-      :END => lambda { |src, sexp|
-        src.emit("END {")
-        if src.void?(sexp[1])
-          src.emit(" }")
+      :END => lambda { |sexp|
+        emit("END {")
+        if void?(sexp[1])
+          emit(" }")
         else
-          src.soft_newline
-          src.indent do
-            src.resource(sexp[1])
-            src.soft_newline
+          soft_newline
+          indent do
+            resource(sexp[1])
+            soft_newline
           end
-          src.emit("}")
+          emit("}")
         end
       },
-      :alias => lambda { |src, sexp|
-        src.emit("alias ")
-        src.resource(sexp[1])
-        src.emit(" ")
-        src.resource(sexp[2])
+      :alias => lambda { |sexp|
+        emit("alias ")
+        resource(sexp[1])
+        emit(" ")
+        resource(sexp[2])
       },
       :alias_error => NYI,
-      :aref => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit("[")
-        src.resource(sexp[2])
-        src.emit("]")
+      :aref => lambda { |sexp|
+        resource(sexp[1])
+        emit("[")
+        resource(sexp[2])
+        emit("]")
       },
-      :aref_field => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit("[")
-        src.resource(sexp[2])
-        src.emit("]")
+      :aref_field => lambda { |sexp|
+        resource(sexp[1])
+        emit("[")
+        resource(sexp[2])
+        emit("]")
       },
       :arg_ambiguous => NYI,
-      :arg_paren => lambda { |src, sexp|
-        src.emit("(")
-        src.resource(sexp[1]) if sexp[1]
-        src.emit(")")
+      :arg_paren => lambda { |sexp|
+        emit("(")
+        resource(sexp[1]) if sexp[1]
+        emit(")")
       },
-      :args_add => lambda { |src, sexp|
-        src.resource(sexp[1])
+      :args_add => lambda { |sexp|
+        resource(sexp[1])
         if sexp[1].first != :args_new
-          src.emit(", ")
+          emit(", ")
         end
-        src.resource(sexp[2])
+        resource(sexp[2])
       },
-      :args_add_block => lambda { |src, sexp|
-        src.resource(sexp[1])
+      :args_add_block => lambda { |sexp|
+        resource(sexp[1])
         if sexp[2]
           if sexp[1].first != :args_new
-            src.emit(", ")
+            emit(", ")
           end
           if sexp[2]
-            src.emit("&")
-            src.resource(sexp[2])
+            emit("&")
+            resource(sexp[2])
           end
         end
       },
-      :args_add_star => lambda { |src, sexp|
-        src.resource(sexp[1])
+      :args_add_star => lambda { |sexp|
+        resource(sexp[1])
         if sexp[1].first != :args_new
-          src.emit(", ")
+          emit(", ")
         end
-        src.emit("*")
-        src.resource(sexp[2])
+        emit("*")
+        resource(sexp[2])
       },
       :args_new => NOOP,
       :args_prepend => NYI,
-      :array => lambda { |src, sexp|
-        src.emit("[")
-        src.resource(sexp[1]) if sexp[1]
-        src.emit("]")
+      :array => lambda { |sexp|
+        emit("[")
+        resource(sexp[1]) if sexp[1]
+        emit("]")
       },
-      :assign => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" = ")
-        src.resource(sexp[2])
+      :assign => lambda { |sexp|
+        resource(sexp[1])
+        emit(" = ")
+        resource(sexp[2])
       },
       :assign_error => NYI,
-      :assoc_new => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" => ")
-        src.resource(sexp[2])
+      :assoc_new => lambda { |sexp|
+        resource(sexp[1])
+        emit(" => ")
+        resource(sexp[2])
       },
-      :assoclist_from_args => lambda { |src, sexp|
+      :assoclist_from_args => lambda { |sexp|
         first = true
         sexp[1].each do |sx|
-          src.emit(", ") unless first
+          emit(", ") unless first
           first = false
-          src.resource(sx)
+          resource(sx)
         end
       },
-      :bare_assoc_hash => lambda { |src, sexp|
+      :bare_assoc_hash => lambda { |sexp|
         first = true
         sexp[1].each do |sx|
-          src.emit(", ") unless first
+          emit(", ") unless first
           first = false
-          src.resource(sx)
+          resource(sx)
         end
       },
-      :begin => lambda { |src, sexp|
-        src.emit("begin")
-        src.indent do
-          if src.void?(sexp[1])
-            src.emit(" ")
+      :begin => lambda { |sexp|
+        emit("begin")
+        indent do
+          if void?(sexp[1])
+            emit(" ")
           else
-            src.soft_newline
-            src.resource(sexp[1])
+            soft_newline
+            resource(sexp[1])
           end
         end
-        src.emit("end")
+        emit("end")
       },
-      :binary => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" #{sexp[2]} ")
-        src.resource(sexp[3])
+      :binary => lambda { |sexp|
+        resource(sexp[1])
+        emit(" #{sexp[2]} ")
+        resource(sexp[3])
       },
-      :block_var => lambda { |src, sexp|
-        src.emit(" |")
-        src.resource(sexp[1])
-        src.emit("|")
+      :block_var => lambda { |sexp|
+        emit(" |")
+        resource(sexp[1])
+        emit("|")
       },
       :block_var_add_block => NYI,
       :block_var_add_star => NYI,
-      :blockarg => lambda { |src, sexp|
-        src.emit("&")
-        src.resource(sexp[1])
+      :blockarg => lambda { |sexp|
+        emit("&")
+        resource(sexp[1])
       },
-      :body_stmt => lambda { |src, sexp|
-        src.resource(sexp[1])     # Main Body
-        src.newline unless src.void?(sexp[1])
-        src.resource(sexp[2]) if sexp[2]  # Rescue
-        src.resource(sexp[4]) if sexp[4]  # Ensure
+      :body_stmt => lambda { |sexp|
+        resource(sexp[1])     # Main Body
+        newline unless void?(sexp[1])
+        resource(sexp[2]) if sexp[2]  # Rescue
+        resource(sexp[4]) if sexp[4]  # Ensure
       },
-      :brace_block => lambda { |src, sexp|
-        src.emit_block(sexp, "{", "}")
+      :brace_block => lambda { |sexp|
+        emit_block(sexp, "{", "}")
       },
-      :break => lambda { |src, sexp|
-        src.emit("break")
-        src.emit(" ") unless sexp[1] == [:args_new]
-        src.resource(sexp[1])
+      :break => lambda { |sexp|
+        emit("break")
+        emit(" ") unless sexp[1] == [:args_new]
+        resource(sexp[1])
       },
-      :call => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(sexp[2])
-        src.resource(sexp[3]) unless sexp[3] == :call
+      :call => lambda { |sexp|
+        resource(sexp[1])
+        emit(sexp[2])
+        resource(sexp[3]) unless sexp[3] == :call
       },
-      :case => lambda { |src, sexp|
-        src.emit("case ")
-        src.resource(sexp[1])
-        src.soft_newline
-        src.indent do
-          src.resource(sexp[2])
-          src.newline
+      :case => lambda { |sexp|
+        emit("case ")
+        resource(sexp[1])
+        soft_newline
+        indent do
+          resource(sexp[2])
+          newline
         end
-        src.emit("end")
+        emit("end")
       },
-      :class => lambda { |src, sexp|
-        src.emit("class ")
-        src.resource(sexp[1])
-        if ! src.void?(sexp[2])
-          src.emit " < "
-          src.resource(sexp[2])
+      :class => lambda { |sexp|
+        emit("class ")
+        resource(sexp[1])
+        if ! void?(sexp[2])
+          emit " < "
+          resource(sexp[2])
         end
-        src.newline
-        src.indent do
-          src.resource(sexp[3]) unless src.void?(sexp[3])
+        newline
+        indent do
+          resource(sexp[3]) unless void?(sexp[3])
         end
-        src.emit("end")
+        emit("end")
       },
       :class_name_error => NYI,
-      :command => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" ")
-        src.resource(sexp[2])
+      :command => lambda { |sexp|
+        resource(sexp[1])
+        emit(" ")
+        resource(sexp[2])
       },
       :command_call => NYI,
-      :const_path_field => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit("::")
-        src.resource(sexp[2])
+      :const_path_field => lambda { |sexp|
+        resource(sexp[1])
+        emit("::")
+        resource(sexp[2])
       },
-      :const_path_ref => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit("::")
-        src.resource(sexp[2])
+      :const_path_ref => lambda { |sexp|
+        resource(sexp[1])
+        emit("::")
+        resource(sexp[2])
       },
       :const_ref => PASS1,
-      :def => lambda { |src, sexp|
-        src.emit("def ")
-        src.resource(sexp[1])
-        src.opt_parens(sexp[2])
-        src.newline
-        src.indent do src.resource(sexp[3]) end
-        src.emit("end")
+      :def => lambda { |sexp|
+        emit("def ")
+        resource(sexp[1])
+        opt_parens(sexp[2])
+        newline
+        indent do resource(sexp[3]) end
+        emit("end")
       },
-      :defined => lambda { |src, sexp|
-        src.emit("defined?(")
-        src.resource(sexp[1])
-        src.emit(")")
+      :defined => lambda { |sexp|
+        emit("defined?(")
+        resource(sexp[1])
+        emit(")")
       },
       :defs => NYI,
-      :do_block => lambda { |src, sexp|
-        src.emit_block(sexp, "do", "end")
+      :do_block => lambda { |sexp|
+        emit_block(sexp, "do", "end")
       },
-      :dot2 => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit("..")
-        src.resource(sexp[2])
+      :dot2 => lambda { |sexp|
+        resource(sexp[1])
+        emit("..")
+        resource(sexp[2])
       },
-      :dot3 => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit("...")
-        src.resource(sexp[2])
+      :dot3 => lambda { |sexp|
+        resource(sexp[1])
+        emit("...")
+        resource(sexp[2])
       },
-      :dyna_symbol => lambda { |src, sexp|
-        src.emit(':"')
-        src.resource(sexp[1])
-        src.emit('"')
+      :dyna_symbol => lambda { |sexp|
+        emit(':"')
+        resource(sexp[1])
+        emit('"')
       },
-      :else => lambda { |src, sexp|
-        src.soft_newline
-        src.outdent do src.emit("else") end
-        src.soft_newline
-        src.resource(sexp[1])
+      :else => lambda { |sexp|
+        soft_newline
+        outdent do emit("else") end
+        soft_newline
+        resource(sexp[1])
       },
-      :elsif => lambda { |src, sexp|
-        src.soft_newline
-        src.outdent do src.emit("elsif ") end
-        src.resource(sexp[1])
-        src.emit_then
-        src.resource(sexp[2])
-        src.resource(sexp[3]) if sexp[3]
+      :elsif => lambda { |sexp|
+        soft_newline
+        outdent do emit("elsif ") end
+        resource(sexp[1])
+        emit_then
+        resource(sexp[2])
+        resource(sexp[3]) if sexp[3]
       },
-      :ensure => lambda { |src, sexp|
-        src.outdent do src.emit("ensure") end
-        if src.void?(sexp[1])
-          src.soft_newline
+      :ensure => lambda { |sexp|
+        outdent do emit("ensure") end
+        if void?(sexp[1])
+          soft_newline
         else
-          src.soft_newline
-          src.resource(sexp[1])
-          src.newline unless src.void?(sexp[1])
+          soft_newline
+          resource(sexp[1])
+          newline unless void?(sexp[1])
         end
       },
       :excessed_comma => NYI,
       :fcall => PASS1,
-      :field => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(sexp[2])
-        src.resource(sexp[3])
+      :field => lambda { |sexp|
+        resource(sexp[1])
+        emit(sexp[2])
+        resource(sexp[3])
       },
-      :for => lambda { |src, sexp|
-        src.emit("for ")
-        src.resource(sexp[1])
-        src.emit(" in ")
-        src.resource(sexp[2])
-        src.newline
-        src.indent do
-          unless src.void?(sexp[3])
-            src.resource(sexp[3])
-            src.soft_newline
+      :for => lambda { |sexp|
+        emit("for ")
+        resource(sexp[1])
+        emit(" in ")
+        resource(sexp[2])
+        newline
+        indent do
+          unless void?(sexp[3])
+            resource(sexp[3])
+            soft_newline
           end
         end
-        src.emit("end")
+        emit("end")
       },
-      :hash => lambda { |src, sexp|
-        src.emit("{")
-        src.resource(sexp[1]) if sexp[1]
-        src.emit("}")
+      :hash => lambda { |sexp|
+        emit("{")
+        resource(sexp[1]) if sexp[1]
+        emit("}")
       },
-      :if => lambda { |src, sexp|
-        src.emit("if ")
-        src.resource(sexp[1])
-        src.emit_then
-        src.indent do
-          src.resource(sexp[2])
-          src.resource(sexp[3]) if sexp[3]
-          src.soft_newline
+      :if => lambda { |sexp|
+        emit("if ")
+        resource(sexp[1])
+        emit_then
+        indent do
+          resource(sexp[2])
+          resource(sexp[3]) if sexp[3]
+          soft_newline
         end
-        src.emit("end")
+        emit("end")
       },
-      :if_mod => lambda { |src, sexp|
-        src.resource(sexp[2])
-        src.emit(" if ")
-        src.resource(sexp[1])
+      :if_mod => lambda { |sexp|
+        resource(sexp[2])
+        emit(" if ")
+        resource(sexp[1])
       },
-      :ifop => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" ? ")
-        src.resource(sexp[2])
-        src.emit(" : ")
-        src.resource(sexp[3])
+      :ifop => lambda { |sexp|
+        resource(sexp[1])
+        emit(" ? ")
+        resource(sexp[2])
+        emit(" : ")
+        resource(sexp[3])
       },
-      :lambda => lambda { |src, sexp|
-        src.emit("->")
-        src.resource(sexp[1])
-        src.emit(" {")
-        if ! src.void?(sexp[2])
-          src.soft_newline
-          src.resource(sexp[2])
+      :lambda => lambda { |sexp|
+        emit("->")
+        resource(sexp[1])
+        emit(" {")
+        if ! void?(sexp[2])
+          soft_newline
+          resource(sexp[2])
         end
-        if src.void?(sexp[2])
-          src.emit(" ")
+        if void?(sexp[2])
+          emit(" ")
         else
-          src.soft_newline
+          soft_newline
         end
-        src.emit("}")
+        emit("}")
       },
       :magic_comment => NYI,
-      :massign => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" = ")
-        src.resource(sexp[2])
+      :massign => lambda { |sexp|
+        resource(sexp[1])
+        emit(" = ")
+        resource(sexp[2])
       },
-      :method_add_arg => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.resource(sexp[2])
+      :method_add_arg => lambda { |sexp|
+        resource(sexp[1])
+        resource(sexp[2])
       },
-      :method_add_block => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.resource(sexp[2])
+      :method_add_block => lambda { |sexp|
+        resource(sexp[1])
+        resource(sexp[2])
       },
-      :mlhs_add => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(", ") unless sexp[1] == [:mlhs_new]
-        src.resource(sexp[2])
+      :mlhs_add => lambda { |sexp|
+        resource(sexp[1])
+        emit(", ") unless sexp[1] == [:mlhs_new]
+        resource(sexp[2])
       },
-      :mlhs_add_star => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(", ") unless sexp[1] == [:mlhs_new]
-        src.emit("*")
-        src.resource(sexp[2])
+      :mlhs_add_star => lambda { |sexp|
+        resource(sexp[1])
+        emit(", ") unless sexp[1] == [:mlhs_new]
+        emit("*")
+        resource(sexp[2])
       },
       :mlhs_new => NOOP,
-      :mlhs_paren => lambda { |src, sexp|
-        src.emit("(")
-        src.resource(sexp[1])
-        src.emit(")")
+      :mlhs_paren => lambda { |sexp|
+        emit("(")
+        resource(sexp[1])
+        emit(")")
       },
-      :module => lambda { |src, sexp|
-        src.emit("module ")
-        src.resource(sexp[1])
-        src.newline
-        unless src.void?(sexp[2])
-          src.indent do src.resource(sexp[2]) end
+      :module => lambda { |sexp|
+        emit("module ")
+        resource(sexp[1])
+        newline
+        unless void?(sexp[2])
+          indent do resource(sexp[2]) end
         end
-        src.emit("end")
+        emit("end")
       },
-      :mrhs_add => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(", ")
-        src.resource(sexp[2])
+      :mrhs_add => lambda { |sexp|
+        resource(sexp[1])
+        emit(", ")
+        resource(sexp[2])
       },
-      :mrhs_add_star => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(", ")
-        src.emit("*")
-        src.resource(sexp[2])
+      :mrhs_add_star => lambda { |sexp|
+        resource(sexp[1])
+        emit(", ")
+        emit("*")
+        resource(sexp[2])
       },
       :mrhs_new => NYI,
       :mrhs_new_from_args => PASS1,
-      :next => lambda { |src, sexp|
-        src.emit("next")
+      :next => lambda { |sexp|
+        emit("next")
       },
-      :opassign => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" ")
-        src.resource(sexp[2])
-        src.emit(" ")
-        src.resource(sexp[3])
+      :opassign => lambda { |sexp|
+        resource(sexp[1])
+        emit(" ")
+        resource(sexp[2])
+        emit(" ")
+        resource(sexp[3])
       },
       :param_error => NYI,
-      :params => lambda { |src, sexp|
-        src.params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5])
+      :params => lambda { |sexp|
+        params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5])
       },
-      :paren => lambda { |src, sexp|
-        src.emit("(")
-        src.resource(sexp[1])
-        src.emit(")")
+      :paren => lambda { |sexp|
+        emit("(")
+        resource(sexp[1])
+        emit(")")
       },
       :parse_error => NYI,
       :program => PASS1,
-      :qwords_add => lambda { |src, sexp|
-        src.words("w", sexp)
+      :qwords_add => lambda { |sexp|
+        words("w", sexp)
       },
       :qwords_new => NOOP,
-      :redo => lambda { |src, sexp|
-        src.emit("redo")
+      :redo => lambda { |sexp|
+        emit("redo")
       },
       :regexp_add => PASS2,
-      :regexp_literal => lambda { |src, sexp|
+      :regexp_literal => lambda { |sexp|
         delims = determine_regexp_delimiters(sexp[2])
-        src.emit(delims[0])
-        src.resource(sexp[1])
-        src.emit(delims[1])
+        emit(delims[0])
+        resource(sexp[1])
+        emit(delims[1])
       },
-      :rescue => lambda { |src, sexp|
-        src.outdent do src.emit("rescue") end
+      :rescue => lambda { |sexp|
+        outdent do emit("rescue") end
         if sexp[1]                # Exception list
-          src.emit(" ")
+          emit(" ")
           if sexp[1].first.kind_of?(Symbol)
-            src.resource(sexp[1])
+            resource(sexp[1])
           else
-            src.resource(sexp[1].first)
+            resource(sexp[1].first)
           end
-          src.emit(" => ")
-          src.resource(sexp[2])
+          emit(" => ")
+          resource(sexp[2])
         end
-        src.newline
-        if sexp[3] && ! src.void?(sexp[3])
-          src.resource(sexp[3])
-          src.newline
+        newline
+        if sexp[3] && ! void?(sexp[3])
+          resource(sexp[3])
+          newline
         end
       },
-      :rescue_mod => lambda { |src, sexp|
-        src.resource(sexp[2])
-        src.emit(" rescue ")
-        src.resource(sexp[1])
+      :rescue_mod => lambda { |sexp|
+        resource(sexp[2])
+        emit(" rescue ")
+        resource(sexp[1])
       },
-      :rest_param => lambda { |src, sexp|
-        src.emit("*")
-        src.resource(sexp[1])
+      :rest_param => lambda { |sexp|
+        emit("*")
+        resource(sexp[1])
       },
-      :retry => lambda { |src, sexp|
-        src.emit("retry")
+      :retry => lambda { |sexp|
+        emit("retry")
       },
-      :return => lambda { |src, sexp|
-        src.emit("return")
-        src.opt_parens(sexp[1])
+      :return => lambda { |sexp|
+        emit("return")
+        opt_parens(sexp[1])
       },
-      :return0 => lambda { |src, sexp|
-        src.emit("return")
+      :return0 => lambda { |sexp|
+        emit("return")
       },
       :sclass => NYI,
-      :stmts_add => lambda { |src, sexp|
-        if sexp[1] != [:stmts_new] && ! src.void?(sexp[1])
-          src.resource(sexp[1])
-          src.newline
+      :stmts_add => lambda { |sexp|
+        if sexp[1] != [:stmts_new] && ! void?(sexp[1])
+          resource(sexp[1])
+          newline
         end
-        src.resource(sexp[2]) if sexp[2]
+        resource(sexp[2]) if sexp[2]
       },
       :stmts_new => NOOP,
-      :string_add => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.resource(sexp[2])
+      :string_add => lambda { |sexp|
+        resource(sexp[1])
+        resource(sexp[2])
       },
-      :string_concat => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.emit(" ")
-        src.resource(sexp[2])
+      :string_concat => lambda { |sexp|
+        resource(sexp[1])
+        emit(" ")
+        resource(sexp[2])
       },
       :string_content => NOOP,
       :string_dvar => NYI,
-      :string_embexpr => lambda { |src, sexp|
-        src.emit('#{')
-        src.resource(sexp[1])
-        src.emit('}')
+      :string_embexpr => lambda { |sexp|
+        emit('#{')
+        resource(sexp[1])
+        emit('}')
       },
-      :string_literal => lambda { |src, sexp|
-        src.emit('"')
-        src.resource(sexp[1])
-        src.emit('"')
+      :string_literal => lambda { |sexp|
+        emit('"')
+        resource(sexp[1])
+        emit('"')
       },
-      :super => lambda { |src, sexp|
-        src.emit("super")
-        src.opt_parens(sexp[1])
+      :super => lambda { |sexp|
+        emit("super")
+        opt_parens(sexp[1])
       },
-      :symbol => lambda { |src, sexp|
-        src.emit(":")
-        src.resource(sexp[1])
+      :symbol => lambda { |sexp|
+        emit(":")
+        resource(sexp[1])
       },
       :symbol_literal => PASS1,
       :top_const_field => NYI,
       :top_const_ref => NYI,
-      :unary => lambda { |src, sexp|
-        src.emit(sexp[1].to_s[0,1])
-        src.resource(sexp[2])
+      :unary => lambda { |sexp|
+        emit(sexp[1].to_s[0,1])
+        resource(sexp[2])
       },
-      :undef => lambda { |src, sexp|
-        src.emit("undef ")
-        src.resource(sexp[1].first)
+      :undef => lambda { |sexp|
+        emit("undef ")
+        resource(sexp[1].first)
       },
-      :unless => lambda { |src, sexp|
-        src.emit("unless ")
-        src.resource(sexp[1])
-        src.emit_then
-        src.indent do
-          src.resource(sexp[2])
-          src.resource(sexp[3]) if sexp[3]
-          src.soft_newline
+      :unless => lambda { |sexp|
+        emit("unless ")
+        resource(sexp[1])
+        emit_then
+        indent do
+          resource(sexp[2])
+          resource(sexp[3]) if sexp[3]
+          soft_newline
         end
-        src.emit("end")
+        emit("end")
       },
-      :unless_mod => lambda { |src, sexp|
-        src.resource(sexp[2])
-        src.emit(" unless ")
-        src.resource(sexp[1])
+      :unless_mod => lambda { |sexp|
+        resource(sexp[2])
+        emit(" unless ")
+        resource(sexp[1])
       },
-      :until => lambda { |src, sexp|
-        src.emit("until ")
-        src.resource(sexp[1])
-        src.newline
-        src.indent do src.resource(sexp[2]) end
-        src.emit(" end")
+      :until => lambda { |sexp|
+        emit("until ")
+        resource(sexp[1])
+        newline
+        indent do resource(sexp[2]) end
+        emit(" end")
       },
-      :until_mod => lambda { |src, sexp|
-        src.resource(sexp[2])
-        src.emit(" until ")
-        src.resource(sexp[1])
+      :until_mod => lambda { |sexp|
+        resource(sexp[2])
+        emit(" until ")
+        resource(sexp[1])
       },
       :var_alias => NYI,
       :var_field => PASS1,
       :var_ref => PASS1,
       :void_stmt => NOOP,
-      :when => lambda { |src, sexp|
-        src.outdent do src.emit("when ") end
-        src.resource(sexp[1])
-        src.newline
-        src.resource(sexp[2])
+      :when => lambda { |sexp|
+        outdent do emit("when ") end
+        resource(sexp[1])
+        newline
+        resource(sexp[2])
         if sexp[3] && sexp[3].first == :when
-          src.emit(" ")
+          emit(" ")
         end
-        src.resource(sexp[3]) if sexp[3]
+        resource(sexp[3]) if sexp[3]
       },
-      :while => lambda { |src, sexp|
-        src.emit("while ")
-        src.resource(sexp[1])
-        src.newline
-        src.indent do
-          unless src.void?(sexp[2])
-            src.resource(sexp[2])
-            src.newline
+      :while => lambda { |sexp|
+        emit("while ")
+        resource(sexp[1])
+        newline
+        indent do
+          unless void?(sexp[2])
+            resource(sexp[2])
+            newline
           end
         end
-        src.emit("end")
+        emit("end")
       },
-      :while_mod => lambda { |src, sexp|
-        src.resource(sexp[2])
-        src.emit(" while ")
-        src.resource(sexp[1])
+      :while_mod => lambda { |sexp|
+        resource(sexp[2])
+        emit(" while ")
+        resource(sexp[1])
       },
       :word_add => PASS2,
       :word_new => NOOP,
-      :words_add => lambda { |src, sexp|
-        src.words("W", sexp)
+      :words_add => lambda { |sexp|
+        words("W", sexp)
       },
       :words_new => NOOP,
-      :xstring_add => lambda { |src, sexp|
-        src.resource(sexp[1])
-        src.resource(sexp[2])
+      :xstring_add => lambda { |sexp|
+        resource(sexp[1])
+        resource(sexp[2])
       },
-      :xstring_literal => lambda { |src, sexp|
-        src.emit('"')
-        src.resource(sexp[1])
-        src.emit('"')
+      :xstring_literal => lambda { |sexp|
+        emit('"')
+        resource(sexp[1])
+        emit('"')
       },
       :xstring_new => NOOP,
-      :yield => lambda { |src, sexp|
-        src.emit("yield")
-        src.opt_parens(sexp[1])
+      :yield => lambda { |sexp|
+        emit("yield")
+        opt_parens(sexp[1])
       },
-      :yield0 => lambda { |src, sexp|
-        src.emit("yield")
+      :yield0 => lambda { |sexp|
+        emit("yield")
       },
-      :zsuper => lambda { |src, sexp|
-        src.emit("super")
+      :zsuper => lambda { |sexp|
+        emit("super")
       },
 
       # Scanner keywords
