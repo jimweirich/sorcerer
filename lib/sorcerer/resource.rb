@@ -27,7 +27,7 @@ module Sorcerer
       @word_level = 0
       @stack = []
       @level = 0
-      @clear_line = false
+      @virgin_line = true
     end
 
     def source
@@ -118,8 +118,8 @@ module Sorcerer
     end
 
     def emit(string)
-      emit_raw("  " * @level) if indenting? && clear_line?
-      @clear_line = false
+      emit_raw("  " * @level) if indenting? && virgin_line?
+      @virgin_line = false
       emit_raw(string.to_s)
     end
 
