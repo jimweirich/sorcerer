@@ -20,9 +20,32 @@ module Sorcerer
       @sexp = sexp
       @source = ''
       @debug = options[:debug]
-      @multiline = options[:multiline]
+      @indent = options[:indent] || 0
+      @multiline = options[:multiline] || indenting?
       @word_level = 0
       @stack = []
+      @level = 0
+      @clear_line = false
+    end
+
+    def indent
+      old_level = @level
+      @level += 1
+      yield
+    ensure
+      @level = old_level
+    end
+
+    def outdent
+      old_level = @level
+      @level -= 1
+      yield
+    ensure
+      @level = old_level
+    end
+
+    def indenting?
+      @indent > 0
     end
 
     def source
@@ -57,14 +80,16 @@ module Sorcerer
       emit(" ")
       emit(do_word)
       resource(sexp[1]) if sexp[1] # Arguments
-      if ! void?(sexp[2])
-        soft_newline
-        resource(sexp[2])       # Statements
-      end
-      if !void?(sexp[2])
-        soft_newline
-      else
-        emit(" ")
+      indent do
+        if ! void?(sexp[2])
+          soft_newline
+          resource(sexp[2])     # Statements
+        end
+        if !void?(sexp[2])
+          soft_newline
+        else
+          emit(" ")
+        end
       end
       emit(end_word)
     end
@@ -87,7 +112,13 @@ module Sorcerer
     end
 
     def emit(string)
-      puts "EMITTING '#{string}' (#{last_handler})" if @debug
+      emit_raw("  " * @level) if indenting? && clear_line?
+      @clear_line = false
+      emit_raw(string.to_s)
+    end
+
+    def emit_raw(string)
+      puts "EMITTING '#{string}' (#{last_handler}) [#{@level}]" if @debug
       @source << string.to_s
     end
 
@@ -155,6 +186,10 @@ module Sorcerer
       @multiline
     end
 
+    def clear_line?
+      @clear_line
+    end
+
     def last_handler
       @stack.last
     end
@@ -162,6 +197,7 @@ module Sorcerer
     def newline
       if multiline?
         emit("\n")
+        @clear_line = true
       else
         emit("; ")
       end
@@ -169,7 +205,7 @@ module Sorcerer
 
     def soft_newline
       if multiline?
-        emit("\n")
+        newline
       else
         emit(" ")
       end
@@ -210,8 +246,10 @@ module Sorcerer
           src.emit " }"
         else
           src.soft_newline
-          src.resource(sexp[1])
-          src.soft_newline
+          src.indent do
+            src.resource(sexp[1])
+            src.soft_newline
+          end
           src.emit("}")
         end
       },
@@ -221,8 +259,10 @@ module Sorcerer
           src.emit(" }")
         else
           src.soft_newline
-          src.resource(sexp[1])
-          src.soft_newline
+          src.indent do
+            src.resource(sexp[1])
+            src.soft_newline
+          end
           src.emit("}")
         end
       },
@@ -314,11 +354,13 @@ module Sorcerer
       },
       :begin => lambda { |src, sexp|
         src.emit("begin")
-        if src.void?(sexp[1])
-          src.emit(" ")
-        else
-          src.soft_newline
-          src.resource(sexp[1])
+        src.indent do
+          if src.void?(sexp[1])
+            src.emit(" ")
+          else
+            src.soft_newline
+            src.resource(sexp[1])
+          end
         end
         src.emit("end")
       },
@@ -361,8 +403,10 @@ module Sorcerer
         src.emit("case ")
         src.resource(sexp[1])
         src.soft_newline
-        src.resource(sexp[2])
-        src.newline
+        src.indent do
+          src.resource(sexp[2])
+          src.newline
+        end
         src.emit("end")
       },
       :class => lambda { |src, sexp|
@@ -373,7 +417,9 @@ module Sorcerer
           src.resource(sexp[2])
         end
         src.newline
-        src.resource(sexp[3]) unless src.void?(sexp[3])
+        src.indent do
+          src.resource(sexp[3]) unless src.void?(sexp[3])
+        end
         src.emit("end")
       },
       :class_name_error => NYI,
@@ -399,7 +445,7 @@ module Sorcerer
         src.resource(sexp[1])
         src.opt_parens(sexp[2])
         src.newline
-        src.resource(sexp[3])
+        src.indent do src.resource(sexp[3]) end
         src.emit("end")
       },
       :defined => lambda { |src, sexp|
@@ -428,13 +474,13 @@ module Sorcerer
       },
       :else => lambda { |src, sexp|
         src.soft_newline
-        src.emit("else")
+        src.outdent do src.emit("else") end
         src.soft_newline
         src.resource(sexp[1])
       },
       :elsif => lambda { |src, sexp|
         src.soft_newline
-        src.emit("elsif ")
+        src.outdent do src.emit("elsif ") end
         src.resource(sexp[1])
         if src.multiline?
           src.soft_newline
@@ -445,7 +491,7 @@ module Sorcerer
         src.resource(sexp[3]) if sexp[3]
       },
       :ensure => lambda { |src, sexp|
-        src.emit("ensure")
+        src.outdent do src.emit("ensure") end
         if src.void?(sexp[1])
           src.soft_newline
         else
@@ -466,10 +512,12 @@ module Sorcerer
         src.resource(sexp[1])
         src.emit(" in ")
         src.resource(sexp[2])
-        src.emit(" do ")
-        unless src.void?(sexp[3])
-          src.resource(sexp[3])
-          src.emit(" ")
+        src.newline
+        src.indent do
+          unless src.void?(sexp[3])
+            src.resource(sexp[3])
+            src.soft_newline
+          end
         end
         src.emit("end")
       },
@@ -486,9 +534,11 @@ module Sorcerer
         else
           src.emit(" then ")
         end
-        src.resource(sexp[2])
-        src.resource(sexp[3]) if sexp[3]
-        src.soft_newline
+        src.indent do
+          src.resource(sexp[2])
+          src.resource(sexp[3]) if sexp[3]
+          src.soft_newline
+        end
         src.emit("end")
       },
       :if_mod => lambda { |src, sexp|
@@ -508,10 +558,14 @@ module Sorcerer
         src.resource(sexp[1])
         src.emit(" {")
         if ! src.void?(sexp[2])
-          src.emit(" ")
+          src.soft_newline
           src.resource(sexp[2])
         end
-        src.emit(" ")
+        if src.void?(sexp[2])
+          src.emit(" ")
+        else
+          src.soft_newline
+        end
         src.emit("}")
       },
       :magic_comment => NYI,
@@ -549,9 +603,8 @@ module Sorcerer
         src.emit("module ")
         src.resource(sexp[1])
         src.newline
-        if src.void?(sexp[2])
-        else
-          src.resource(sexp[2])
+        unless src.void?(sexp[2])
+          src.indent do src.resource(sexp[2]) end
         end
         src.emit("end")
       },
@@ -604,7 +657,7 @@ module Sorcerer
         src.emit(delims[1])
       },
       :rescue => lambda { |src, sexp|
-        src.emit("rescue")
+        src.outdent do src.emit("rescue") end
         if sexp[1]                # Exception list
           src.emit(" ")
           if sexp[1].first.kind_of?(Symbol)
@@ -697,9 +750,11 @@ module Sorcerer
         else
           src.emit(" then ")
         end
-        src.resource(sexp[2])
-        src.resource(sexp[3]) if sexp[3]
-        src.soft_newline
+        src.indent do
+          src.resource(sexp[2])
+          src.resource(sexp[3]) if sexp[3]
+          src.soft_newline
+        end
         src.emit("end")
       },
       :unless_mod => lambda { |src, sexp|
@@ -710,8 +765,8 @@ module Sorcerer
       :until => lambda { |src, sexp|
         src.emit("until ")
         src.resource(sexp[1])
-        src.emit(" do ")
-        src.resource(sexp[2])
+        src.newline
+        src.indent do src.resource(sexp[2]) end
         src.emit(" end")
       },
       :until_mod => lambda { |src, sexp|
@@ -724,7 +779,7 @@ module Sorcerer
       :var_ref => PASS1,
       :void_stmt => NOOP,
       :when => lambda { |src, sexp|
-        src.emit("when ")
+        src.outdent do src.emit("when ") end
         src.resource(sexp[1])
         src.newline
         src.resource(sexp[2])
@@ -737,9 +792,11 @@ module Sorcerer
         src.emit("while ")
         src.resource(sexp[1])
         src.newline
-        unless src.void?(sexp[2])
-          src.resource(sexp[2])
-          src.newline
+        src.indent do
+          unless src.void?(sexp[2])
+            src.resource(sexp[2])
+            src.newline
+          end
         end
         src.emit("end")
       },
