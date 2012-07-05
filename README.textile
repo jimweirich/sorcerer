@@ -54,19 +54,21 @@ the source command.
 For example, given:
 
 <pre style="background: LightGrey">
-  sexp = Ripper::SexpBuilder.new("def foo; end").parse
+  sexp = Ripper::SexpBuilder.new("def foo; bar; end").parse
 </pre>
 
 Then the following
 
 <pre style="background: LightGrey">
-  puts Sorcerer.source(sexp)
+  puts Sorcerer.source(sexp, indent: true)
 </pre>
 
 generates single line output (the default):
 
 <pre style="background: LightBlue">
-def foo; end
+def foo
+  bar
+end
 </pre>
 
 And the following
@@ -80,6 +82,29 @@ generates multi-line output
 <pre style="background: LightBlue">
 def foo
 end
+</pre>
+
+h3. Indentation
+
+By default, sorcerer does not indent its multiline output.  Adding the
+"indent" option will cause the output to be indented.
+
+For example, given:
+
+<pre style="background: LightGrey">
+  sexp = Ripper::SexpBuilder.new("def foo; end").parse
+</pre>
+
+Then the following
+
+<pre style="background: LightGrey">
+  puts Sorcerer.source(sexp)
+</pre>
+
+generates single line output (the default):
+
+<pre style="background: LightBlue">
+def foo; end
 </pre>
 
 h3. Debugging Output
@@ -96,6 +121,6 @@ h2. History
 * 0.0.7 - Basic single line version
 * 0.1.0 - Added support for multi-line output. Improved rendering of a
    number of constructs
-
+* 0.2.0 - Added support for indented output.
 
 
