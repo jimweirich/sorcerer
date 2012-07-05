@@ -20,7 +20,7 @@ class SubexpressionTest < Test::Unit::TestCase
 
   def test_unary_expressions
     assert_subexpressions "-(a+b)", [
-      "-(a + b)", "a + b", "a", "b", 
+      "-(a + b)", "a + b", "a", "b",
     ]
   end
 
@@ -61,8 +61,8 @@ class SubexpressionTest < Test::Unit::TestCase
   end
 
   def test_hash_literal
-    assert_subexpressions "{:a => aa, :b => bb}", [
-      "{:a => aa, :b => bb}", "aa", "bb"
+    assert_subexpressions "{ :a => aa, :b => bb }", [
+      "{ :a => aa, :b => bb }", "aa", "bb"
     ]
   end
 
@@ -74,7 +74,7 @@ class SubexpressionTest < Test::Unit::TestCase
     assert_subexpressions "o.f(a+b, c*d, x.y, z(k, 2, 3)) { xx }", [
       "o.f(a + b, c * d, x.y, z(k, 2, 3)) { xx }",
       "a + b", "a", "b",
-      "c * d", "c", "d", 
+      "c * d", "c", "d",
       "x.y", "x",
       "z(k, 2, 3)", "k",
       "o",

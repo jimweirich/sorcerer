@@ -206,6 +206,10 @@ module Sorcerer
         sexp == VOID_BODY2
     end
 
+    def label?(sexp)
+      sexp?(sexp) && sexp.first == :@label
+    end
+
     def last_handler
       @stack.last
     end
@@ -353,7 +357,11 @@ module Sorcerer
       :assign_error => NYI,
       :assoc_new => lambda { |sexp|
         resource(sexp[1])
-        emit(" => ")
+        if label?(sexp[1])
+          emit(" ")
+        else
+          emit(" => ")
+        end
         resource(sexp[2])
       },
       :assoclist_from_args => lambda { |sexp|
@@ -539,8 +547,11 @@ module Sorcerer
       },
       :hash => lambda { |sexp|
         emit("{")
-        resource(sexp[1]) if sexp[1]
-        emit("}")
+        if sexp[1]
+          emit(" ")
+          resource(sexp[1])
+        end
+        emit(" }")
       },
       :if => lambda { |sexp|
         emit("if ")
@@ -865,7 +876,7 @@ module Sorcerer
       :@int => EMIT1,
       :@ivar => EMIT1,
       :@kw => EMIT1,
-      :@label => NYI,
+      :@label => EMIT1,
       :@lbrace => NYI,
       :@lbracket => NYI,
       :@lparen => NYI,

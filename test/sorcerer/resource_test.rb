@@ -159,7 +159,14 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "meth(:x => 1, :y => 2)"
     assert_resource "meth(a, :x => 1)"
     assert_resource "meth(a, :x => 1, :y => 2)"
-    # assert_resource "meth(a, x: 1, y: 2)" # PENDING
+  end
+
+  def test_can_source_method_with_new_hash_syntax
+    assert_resource "meth(x: 1)"
+    assert_resource "meth(x: 1, y: 2)"
+    assert_resource "meth(a, x: 1)"
+    assert_resource "meth(a, x: 1, y: 2)"
+    assert_resource "meth(a, :x => 1, y: 2)"
   end
 
   def test_can_source_method_with_do_block
@@ -308,9 +315,19 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_hash_literals
-    assert_resource "{}"
-    assert_resource "{:a => 1}"
-    assert_resource "{:a => 1, :b => 2}"
+    assert_resource "{ }"
+    assert_resource "{ :a => 1 }"
+    assert_resource "{ :a => 1, :b => 2 }"
+  end
+
+  def test_can_source_new_hash_literals
+    assert_resource "{ }"
+    assert_resource "{ a: 1 }"
+    assert_resource "{ a: 1, b: 2 }"
+  end
+
+  def test_can_source_mixed_hash_literals
+    assert_resource "{ a: 1, :b => 2, c: 3, :d => 4 }"
   end
 
   def test_can_source_unary_expression
