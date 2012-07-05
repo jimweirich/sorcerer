@@ -30,6 +30,20 @@ module Sorcerer
       @clear_line = false
     end
 
+    def source
+      @stack.clear
+      resource(@sexp)
+      @source
+    end
+
+    def multiline?
+      @multiline
+    end
+
+    def indenting?
+      @indent > 0
+    end
+
     def indent
       old_level = @level
       @level += 1
@@ -44,16 +58,6 @@ module Sorcerer
       yield
     ensure
       @level = old_level
-    end
-
-    def indenting?
-      @indent > 0
-    end
-
-    def source
-      @stack.clear
-      resource(@sexp)
-      @source
     end
 
     def sexp?(obj)
@@ -192,22 +196,18 @@ module Sorcerer
         sexp == VOID_BODY2
     end
 
-    def multiline?
-      @multiline
-    end
-
-    def clear_line?
-      @clear_line
-    end
-
     def last_handler
       @stack.last
+    end
+
+    def virgin_line?
+      @virgin_line
     end
 
     def newline
       if multiline?
         emit("\n")
-        @clear_line = true
+        @virgin_line = true
       else
         emit("; ")
       end
