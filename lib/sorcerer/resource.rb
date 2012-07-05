@@ -33,6 +33,9 @@ module Sorcerer
     def source
       @stack.clear
       resource(@sexp)
+      if multiline?
+        @source << "\n" unless @source =~ /\n\z/m
+      end
       @source
     end
 

@@ -50,11 +50,11 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def for_multi_line(string)
-    string.gsub(/~/, "\n").gsub(/; /, "\n").gsub(/#/,'')
+    string.gsub(/~/, "\n").gsub(/; /, "\n").gsub(/#/,'') + "\n"
   end
 
   def for_indented(string)
-    string.gsub(/~/, "\n").gsub(/; /, "\n").gsub(/#/,'  ')
+    string.gsub(/~/, "\n").gsub(/; /, "\n").gsub(/#/,'  ') + "\n"
   end
 
   def source(string, options={})
@@ -419,38 +419,38 @@ class SourcerTest < Test::Unit::TestCase
 
   def test_can_source_if
     assert_resource "if a then b end"
-    assert_resource "if a\nb\nend", multiline: true
-    assert_resource "if a\n  b\nend", indent: 2
+    assert_resource "if a\nb\nend\n", multiline: true
+    assert_resource "if a\n  b\nend\n", indent: 2
   end
 
   def test_can_source_if_else
     assert_resource "if a then b else c end"
-    assert_resource "if a\nb\nelse\nc\nend", multiline: true
-    assert_resource "if a\n  b\nelse\n  c\nend", indent: 2
+    assert_resource "if a\nb\nelse\nc\nend\n", multiline: true
+    assert_resource "if a\n  b\nelse\n  c\nend\n", indent: 2
   end
 
   def test_can_source_if_elsif
     assert_resource "if a then b elsif c then d end"
-    assert_resource "if a\nb\nelsif c\nd\nend", multiline: true
-    assert_resource "if a\n  b\nelsif c\n  d\nend", indent: 2
+    assert_resource "if a\nb\nelsif c\nd\nend\n", multiline: true
+    assert_resource "if a\n  b\nelsif c\n  d\nend\n", indent: 2
   end
 
   def test_can_source_if_elsif_else
     assert_resource "if a then b elsif c then d else e end"
-    assert_resource "if a\nb\nelsif c\nd\nelse\ne\nend", multiline: true
-    assert_resource "if a\n  b\nelsif c\n  d\nelse\n  e\nend", indent: 2
+    assert_resource "if a\nb\nelsif c\nd\nelse\ne\nend\n", multiline: true
+    assert_resource "if a\n  b\nelsif c\n  d\nelse\n  e\nend\n", indent: 2
   end
 
   def test_can_source_unless
     assert_resource "unless a then b end"
-    assert_resource "unless a\nb\nend", multiline: true
-    assert_resource "unless a\n  b\nend", indent: 2
+    assert_resource "unless a\nb\nend\n", multiline: true
+    assert_resource "unless a\n  b\nend\n", indent: 2
   end
 
   def test_can_source_unless_else
     assert_resource "unless a then b else c end"
-    assert_resource "unless a\nb\nelse\nc\nend", multiline: true
-    assert_resource "unless a\n  b\nelse\n  c\nend", indent: 2
+    assert_resource "unless a\nb\nelse\nc\nend\n", multiline: true
+    assert_resource "unless a\n  b\nelse\n  c\nend\n", indent: 2
   end
 
   def test_can_source_while
