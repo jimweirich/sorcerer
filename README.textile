@@ -71,7 +71,7 @@ def foo; bar; end
 h3. Multi-Line Output
 
 If you want multi-line output of source, add the multiline option to
-the source command. 
+the source command.
 
 For example, given the sexp generated above, then this
 
@@ -86,6 +86,8 @@ def foo
 bar
 end
 </pre>
+
+(Note that all multi-line output will have a final newline.)
 
 h3. Indentation
 
