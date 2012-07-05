@@ -1,6 +1,6 @@
 module Sorcerer
   VERSION_MAJOR = 0
-  VERSION_MINOR = 2
+  VERSION_MINOR = 3
   VERSION_BUILD = 0
   VERSION_BETA  = 0
 
