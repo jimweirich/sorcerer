@@ -32,7 +32,7 @@ class SourcerTest < Test::Unit::TestCase
   # * "#" is expected to be a tabbed indent in indent mode and a null
   # string in single line and multi-line modes.
   #
-  def assert_resource_ml(string)
+  def assert_resource_lines(string)
     assert_resource_for_mode(string, multiline: false) { |s| for_single_line(s) }
     assert_resource_for_mode(string, multiline: true)  { |s| for_multi_line(s) }
     assert_resource_for_mode(string, indent: true)     { |s| for_indented(s) }
@@ -46,15 +46,26 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def for_single_line(string)
-    string.gsub(/~/, " ").gsub(/#/,'')
+    string.
+      gsub(/\bTHEN~/, "then ").
+      gsub(/~/, " ").
+      gsub(/#/,'')
   end
 
   def for_multi_line(string)
-    string.gsub(/~/, "\n").gsub(/; /, "\n").gsub(/#/,'') + "\n"
+    string.
+      gsub(/\b THEN~/, "; ").
+      gsub(/~/, "\n").
+      gsub(/; /, "\n").
+      gsub(/#/,'') + "\n"
   end
 
   def for_indented(string)
-    string.gsub(/~/, "\n").gsub(/; /, "\n").gsub(/#/,'  ') + "\n"
+    string.
+      gsub(/\b THEN~/, "; ").
+      gsub(/~/, "\n").
+      gsub(/; /, "\n").
+      gsub(/#/,'  ') + "\n"
   end
 
   def source(string, options={})
@@ -63,6 +74,7 @@ class SourcerTest < Test::Unit::TestCase
       puts "***************************** options: #{options.inspect}"
     end
     sexp = Ripper::SexpBuilder.new(string).parse
+    fail "Failed to parts '#{string}'" if sexp.nil?
     Sorcerer.source(sexp, options)
   end
 
@@ -147,44 +159,45 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "meth(:x => 1, :y => 2)"
     assert_resource "meth(a, :x => 1)"
     assert_resource "meth(a, :x => 1, :y => 2)"
+    # assert_resource "meth(a, x: 1, y: 2)" # PENDING
   end
 
   def test_can_source_method_with_do_block
-    assert_resource_ml "meth do end"
-    assert_resource_ml "meth do |a| end"
-    assert_resource_ml "meth(x, y, *rest, &code) do |a, b=1, c=x, *args, &block|~#one; #two; #three~end"
+    assert_resource_lines "meth do end"
+    assert_resource_lines "meth do |a| end"
+    assert_resource_lines "meth(x, y, *rest, &code) do |a, b=1, c=x, *args, &block|~#one; #two; #three~end"
   end
 
   def test_can_source_method_with_block
-    assert_resource "meth { }"
-    assert_resource "meth { |a| }"
-    assert_resource "meth { |a, b| }"
-    assert_resource "meth { |*args| }"
-    assert_resource "meth { |a, *args| }"
-    assert_resource "meth { |&block| }"
-    assert_resource "meth { |*args, &block| }"
-    assert_resource "meth { |a, b, *args, &block| }"
-    assert_resource "meth { |a, b=1, *args, &block| }"
-    assert_resource "meth { |a, b=1, c=x, *args, &block| }"
+    assert_resource_lines "meth { }"
+    assert_resource_lines "meth { |a| }"
+    assert_resource_lines "meth { |a, b| }"
+    assert_resource_lines "meth { |*args| }"
+    assert_resource_lines "meth { |a, *args| }"
+    assert_resource_lines "meth { |&block| }"
+    assert_resource_lines "meth { |*args, &block| }"
+    assert_resource_lines "meth { |a, b, *args, &block| }"
+    assert_resource_lines "meth { |a, b=1, *args, &block| }"
+    assert_resource_lines "meth { |a, b=1, c=x, *args, &block| }"
   end
 
   def test_can_source_method_with_block_contents
-    assert_resource_ml "meth { |a|~#a.x~}"
-    assert_resource_ml "meth { |a|~#a.x; #b.z~}"
+    assert_resource_lines "meth { |a|~#a.x~}"
+    assert_resource_lines "meth { |a|~#a.x; #b.z~}"
   end
 
   def test_can_source_method_with_complex_args_and_block
-    assert_resource_ml "meth(x, y, *rest, &code) { |a, b=1, c=x, *args, &block|~#one; #two; #three~}"
+    assert_resource_lines "meth(x, y, *rest, &code) { |a, b=1, c=x, *args, &block|~#one; #two; #three~}"
   end
 
   def test_can_source_stabby_procs
-    assert_resource_ml "-> { }"
-    assert_resource_ml "->() { }"
-    assert_resource_ml "->(a) { }"
-    assert_resource_ml "->(a, b) { }"
-    assert_resource_ml "->(a, *args) { }"
-    assert_resource_ml "->(a, b=12, *args, &block) { }"
-    assert_resource_ml "->(a) {~b~}"
+    assert_resource_lines "-> { }"
+    assert_resource_lines "->() { }"
+    assert_resource_lines "->(a) { }"
+    assert_resource_lines "->(a, b) { }"
+    assert_resource_lines "->(a, *args) { }"
+    assert_resource_lines "->(a, b=12, *args, &block) { }"
+    assert_resource_lines "->(a) {~b~}"
   end
 
   def test_can_source_dot_calls
@@ -376,41 +389,41 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_statement_sequences
-    assert_resource_ml "a"
-    assert_resource_ml "a; b"
-    assert_resource_ml "a; b; c"
+    assert_resource_lines "a"
+    assert_resource_lines "a; b"
+    assert_resource_lines "a; b; c"
   end
 
   def test_can_source_begin_end
-    assert_resource_ml "begin end"
-    assert_resource_ml "begin~#a; end"
-    assert_resource_ml "begin~#a(); end"
-    assert_resource_ml "begin~#a; #b; #c; end"
+    assert_resource_lines "begin end"
+    assert_resource_lines "begin~#a; end"
+    assert_resource_lines "begin~#a(); end"
+    assert_resource_lines "begin~#a; #b; #c; end"
   end
 
   def test_can_source_begin_rescue_end
-    assert_resource_ml "begin~rescue; end"
-    assert_resource_ml "begin~rescue E => ex; #b; end"
-    assert_resource_ml "begin~#a; rescue E => ex; #b; end"
-    assert_resource_ml "begin~#a; rescue E, F => ex; #b; end"
-    assert_resource_ml "begin~#a; rescue E, F => ex; #b; #c; end"
-    assert_resource_ml "begin~rescue E, F => ex; #b; #c; end"
+    assert_resource_lines "begin~rescue; end"
+    assert_resource_lines "begin~rescue E => ex; #b; end"
+    assert_resource_lines "begin~#a; rescue E => ex; #b; end"
+    assert_resource_lines "begin~#a; rescue E, F => ex; #b; end"
+    assert_resource_lines "begin~#a; rescue E, F => ex; #b; #c; end"
+    assert_resource_lines "begin~rescue E, F => ex; #b; #c; end"
   end
 
   def test_can_source_begin_ensure_end
-    assert_resource_ml "begin~ensure~end"
-    assert_resource_ml "begin~ensure~#b; end"
-    assert_resource_ml "begin~#a; ensure~#b; end"
-    assert_resource_ml "begin~#a; ensure~#b; end"
+    assert_resource_lines "begin~ensure~end"
+    assert_resource_lines "begin~ensure~#b; end"
+    assert_resource_lines "begin~#a; ensure~#b; end"
+    assert_resource_lines "begin~#a; ensure~#b; end"
   end
 
   def test_can_source_begin_rescue_ensure_end
-    assert_resource_ml "begin~rescue; end"
-    assert_resource_ml "begin~rescue E => ex; #b; ensure~#c; end"
-    assert_resource_ml "begin~#a; rescue E => ex; #b; ensure~#c; end"
-    assert_resource_ml "begin~#a; rescue E, F => ex; #b; ensure~#c; end"
-    assert_resource_ml "begin~#a; rescue E, F => ex; #b; #c; ensure~#d; end"
-    assert_resource_ml "begin~rescue E, F => ex; #b; #c; ensure~#d; end"
+    assert_resource_lines "begin~rescue; end"
+    assert_resource_lines "begin~rescue E => ex; #b; ensure~#c; end"
+    assert_resource_lines "begin~#a; rescue E => ex; #b; ensure~#c; end"
+    assert_resource_lines "begin~#a; rescue E, F => ex; #b; ensure~#c; end"
+    assert_resource_lines "begin~#a; rescue E, F => ex; #b; #c; ensure~#d; end"
+    assert_resource_lines "begin~rescue E, F => ex; #b; #c; ensure~#d; end"
   end
 
   def test_can_source_rescue_modifier
@@ -418,69 +431,57 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_if
-    assert_resource "if a then b end"
-    assert_resource "if a\nb\nend\n", multiline: true
-    assert_resource "if a\n  b\nend\n", indent: 2
+    assert_resource_lines "if a THEN~#b~end"
   end
 
   def test_can_source_if_else
-    assert_resource "if a then b else c end"
-    assert_resource "if a\nb\nelse\nc\nend\n", multiline: true
-    assert_resource "if a\n  b\nelse\n  c\nend\n", indent: 2
+    assert_resource_lines "if a THEN~#b~else~#c~end"
   end
 
   def test_can_source_if_elsif
-    assert_resource "if a then b elsif c then d end"
-    assert_resource "if a\nb\nelsif c\nd\nend\n", multiline: true
-    assert_resource "if a\n  b\nelsif c\n  d\nend\n", indent: 2
+    assert_resource_lines "if a THEN~#b~elsif c THEN~#d~end"
   end
 
   def test_can_source_if_elsif_else
-    assert_resource "if a then b elsif c then d else e end"
-    assert_resource "if a\nb\nelsif c\nd\nelse\ne\nend\n", multiline: true
-    assert_resource "if a\n  b\nelsif c\n  d\nelse\n  e\nend\n", indent: 2
+    assert_resource_lines "if a THEN~#b~elsif c THEN~#d~else~#e~end"
   end
 
   def test_can_source_unless
-    assert_resource "unless a then b end"
-    assert_resource "unless a\nb\nend\n", multiline: true
-    assert_resource "unless a\n  b\nend\n", indent: 2
+    assert_resource_lines "unless a THEN~#b~end"
   end
 
   def test_can_source_unless_else
-    assert_resource "unless a then b else c end"
-    assert_resource "unless a\nb\nelse\nc\nend\n", multiline: true
-    assert_resource "unless a\n  b\nelse\n  c\nend\n", indent: 2
+    assert_resource_lines "unless a THEN~#b~else~#c~end"
   end
 
   def test_can_source_while
-    assert_resource_ml "while c; end"
-    assert_resource_ml "while c; #body; end"
+    assert_resource_lines "while c; end"
+    assert_resource_lines "while c; #body; end"
   end
 
   def test_can_source_until
-   assert_resource_ml "until c; #body end"
+   assert_resource_lines "until c; #body end"
   end
 
   def test_can_source_for
-    assert_resource_ml "for a in list; end"
-    assert_resource_ml "for a in list; #c~end"
+    assert_resource_lines "for a in list; end"
+    assert_resource_lines "for a in list; #c~end"
   end
 
   def test_can_source_break
-   assert_resource_ml "while c; #a; #break if b; #c; end"
-   assert_resource_ml "while c; #a; #break value if b; #c; end"
+   assert_resource_lines "while c; #a; #break if b; #c; end"
+   assert_resource_lines "while c; #a; #break value if b; #c; end"
   end
 
   def test_can_source_next
-   assert_resource_ml "while c; #a; #next if b; #c; end"
-   assert_resource_ml "while c; #a; #next if b; #c; end"
+   assert_resource_lines "while c; #a; #next if b; #c; end"
+   assert_resource_lines "while c; #a; #next if b; #c; end"
   end
 
   def test_can_source_case
-    assert_resource_ml "case a~when b; #c; end"
-    assert_resource_ml "case a~when b; #c when d; #e; end"
-    assert_resource_ml "case a~when b; #c when d; #e~else~#f; end"
+    assert_resource_lines "case a~when b; #c; end"
+    assert_resource_lines "case a~when b; #c when d; #e; end"
+    assert_resource_lines "case a~when b; #c when d; #e~else~#f; end"
   end
 
   def test_can_source_if_modifier
@@ -545,63 +546,63 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_source_def
-    assert_resource_ml "def f; end"
-    assert_resource_ml "def f; #x; end"
-    assert_resource_ml "def f a; end"
-    assert_resource_ml "def f(); end"
-    assert_resource_ml "def f(a); end"
-    assert_resource_ml "def f(a, b); end"
-    assert_resource_ml "def f(a, *args); end"
-    assert_resource_ml "def f(a, *args, &block); end"
-    assert_resource_ml "def f(a); #x; end"
-    assert_resource_ml "def f(a); #x; #y; end"
+    assert_resource_lines "def f; end"
+    assert_resource_lines "def f; #x; end"
+    assert_resource_lines "def f a; end"
+    assert_resource_lines "def f(); end"
+    assert_resource_lines "def f(a); end"
+    assert_resource_lines "def f(a, b); end"
+    assert_resource_lines "def f(a, *args); end"
+    assert_resource_lines "def f(a, *args, &block); end"
+    assert_resource_lines "def f(a); #x; end"
+    assert_resource_lines "def f(a); #x; #y; end"
   end
 
   def test_can_source_class_without_parent
-    assert_resource_ml "class X; end"
-    assert_resource_ml "class X; #x; end"
-    assert_resource_ml "class X; #def f(); #end; end"
+    assert_resource_lines "class X; end"
+    assert_resource_lines "class X; #x; end"
+    assert_resource_lines "class X; #def f(); #end; end"
   end
 
   def test_can_source_class_with_parent
-    assert_resource_ml "class X < Y; end"
-    assert_resource_ml "class X < Y; #x; end"
+    assert_resource_lines "class X < Y; end"
+    assert_resource_lines "class X < Y; #x; end"
   end
 
   def test_can_source_class_with_self_parent
-    assert_resource_ml "class X < self; end"
+    assert_resource_lines "class X < self; end"
   end
 
   def test_can_source_private_etc_in_class
-    assert_resource_ml "class X; #public; #def f(); #end; end"
-    assert_resource_ml "class X; #protected; #def f(); #end; end"
-    assert_resource_ml "class X; #private; #def f(); #end; end"
-    assert_resource_ml "class X; #def f(); #end; #public :f; end"
-    assert_resource_ml "class X; #def f(); #end; #protected :f; end"
-    assert_resource_ml "class X; #def f(); #end; #private :f; end"
+    assert_resource_lines "class X; #public; #def f(); #end; end"
+    assert_resource_lines "class X; #protected; #def f(); #end; end"
+    assert_resource_lines "class X; #private; #def f(); #end; end"
+    assert_resource_lines "class X; #def f(); #end; #public :f; end"
+    assert_resource_lines "class X; #def f(); #end; #protected :f; end"
+    assert_resource_lines "class X; #def f(); #end; #private :f; end"
   end
 
   def test_can_source_module
-    assert_resource_ml "module X; end"
-    assert_resource_ml "module X; #x; end"
-    assert_resource_ml "module X; #def f(); #end; end"
+    assert_resource_lines "module X; end"
+    assert_resource_lines "module X; #x; end"
+    assert_resource_lines "module X; #def f(); #end; end"
   end
 
   def test_can_source_BEGIN
-    assert_resource_ml "BEGIN { }"
-    assert_resource_ml "BEGIN {~#x~}"
-    assert_resource_ml "BEGIN {~#x; #y~}"
+    assert_resource_lines "BEGIN { }"
+    assert_resource_lines "BEGIN {~#x~}"
+    assert_resource_lines "BEGIN {~#x; #y~}"
   end
 
   def test_can_source_END
-    assert_resource_ml "END { }"
-    assert_resource_ml "END {~#x~}"
-    assert_resource_ml "END {~#x; #y~}"
+    assert_resource_lines "END { }"
+    assert_resource_lines "END {~#x~}"
+    assert_resource_lines "END {~#x; #y~}"
   end
 
   def test_can_source_then
-    assert_resource_ml "Then {~#a == b~}"
-    assert_resource_ml "Then {~#a == b; #x~}"
+    assert_resource_lines "Then {~#a == b~}"
+    assert_resource_lines "Then {~#a == b; #x~}"
   end
 
   def test_can_use_ripper_sexp_output
