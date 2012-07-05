@@ -18,10 +18,12 @@ module Sorcerer
 
     def initialize(sexp, options={})
       @sexp = sexp
-      @source = ''
       @debug = options[:debug]
       @indent = options[:indent] || 0
+      @indent = 2 if @indent && ! @indent.is_a?(Integer)
       @multiline = options[:multiline] || indenting?
+
+      @source = ''
       @word_level = 0
       @stack = []
       @level = 0
