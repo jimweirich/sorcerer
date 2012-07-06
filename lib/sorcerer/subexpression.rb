@@ -32,7 +32,7 @@ module Sorcerer
 
     def tagged_sexp(sexp)
       case sexp.first
-      when :var_ref, :binary, :array, :hash, :unary
+      when :var_ref, :vcall, :binary, :array, :hash, :unary
         @result << sexp
         list_sexp(sexp)
       when :aref

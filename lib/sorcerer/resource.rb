@@ -807,6 +807,7 @@ module Sorcerer
       :var_alias => NYI,
       :var_field => PASS1,
       :var_ref => PASS1,
+      :vcall => PASS1,
       :void_stmt => NOOP,
       :when => lambda { |sexp|
         outdent do emit("when ") end
