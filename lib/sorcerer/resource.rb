@@ -709,9 +709,16 @@ module Sorcerer
         end
       },
       :rescue_mod => lambda { |sexp|
-        resource(sexp[2])
+        if RUBY_VERSION <= '1.9.2'
+          # Pre ruby 1.9.3 these nodes were returned in the reverse order, see
+          # http://bugs.ruby-lang.org/issues/4716 for more details
+          first_node, second_node = sexp[2], sexp[1]
+        else
+          first_node, second_node = sexp[1], sexp[2]
+        end
+        resource(first_node)
         emit(" rescue ")
-        resource(sexp[1])
+        resource(second_node)
       },
       :rest_param => lambda { |sexp|
         emit("*")
