@@ -261,6 +261,11 @@ module Sorcerer
     PASS2 = lambda { |sexp| resource(sexp[2]) }
     EMIT1 = lambda { |sexp| emit(sexp[1]) }
 
+    # Earlier versions of ripper miss array node for words, see
+    # http://bugs.ruby-lang.org/issues/4365 for more details
+    MISSES_ARRAY_NODE_FOR_WORDS = RUBY_VERSION < '1.9.2' ||
+      (RUBY_VERSION == '1.9.2' && RUBY_PATCHLEVEL < 320)
+
     HANDLERS = {
       # parser keywords
 
@@ -345,9 +350,15 @@ module Sorcerer
       :args_new => NOOP,
       :args_prepend => NYI,
       :array => lambda { |sexp|
-        emit("[")
-        resource(sexp[1]) if sexp[1]
-        emit("]")
+        if !MISSES_ARRAY_NODE_FOR_WORDS &&
+             sexp[1] &&
+             [:words_add, :qwords_add].include?(sexp[1].first)
+          resource(sexp[1])
+        else
+          emit("[")
+          resource(sexp[1]) if sexp[1]
+          emit("]")
+        end
       },
       :assign => lambda { |sexp|
         resource(sexp[1])
