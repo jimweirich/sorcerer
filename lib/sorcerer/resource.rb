@@ -580,14 +580,16 @@ module Sorcerer
         emit("->")
         resource(sexp[1])
         emit(" {")
-        if ! void?(sexp[2])
-          soft_newline
-          resource(sexp[2])
-        end
-        if void?(sexp[2])
-          emit(" ")
-        else
-          soft_newline
+        indent do
+          if ! void?(sexp[2])
+            soft_newline
+            resource(sexp[2])
+          end
+          if void?(sexp[2])
+            emit(" ")
+          else
+            soft_newline
+          end
         end
         emit("}")
       },

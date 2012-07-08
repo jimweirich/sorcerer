@@ -32,10 +32,10 @@ class SourcerTest < Test::Unit::TestCase
   # * "#" is expected to be a tabbed indent in indent mode and a null
   # string in single line and multi-line modes.
   #
-  def assert_resource_lines(string)
-    assert_resource_for_mode(string, multiline: false) { |s| for_single_line(s) }
-    assert_resource_for_mode(string, multiline: true)  { |s| for_multi_line(s) }
-    assert_resource_for_mode(string, indent: true)     { |s| for_indented(s) }
+  def assert_resource_lines(string, options={})
+    assert_resource_for_mode(string, options.merge(multiline: false)) { |s| for_single_line(s) }
+    assert_resource_for_mode(string, options.merge(multiline: true))  { |s| for_multi_line(s) }
+    assert_resource_for_mode(string, options.merge(indent: true))     { |s| for_indented(s) }
   end
 
   # Assert the string is correctly resourced given the options and the
@@ -204,7 +204,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource_lines "->(a, b) { }"
     assert_resource_lines "->(a, *args) { }"
     assert_resource_lines "->(a, b=12, *args, &block) { }"
-    assert_resource_lines "->(a) {~b~}"
+    assert_resource_lines "->(a) {~#b~}"
   end
 
   def test_can_source_dot_calls
