@@ -261,6 +261,11 @@ module Sorcerer
     PASS2 = lambda { |sexp| resource(sexp[2]) }
     EMIT1 = lambda { |sexp| emit(sexp[1]) }
 
+    # Earlier versions of ripper miss array node for words, see
+    # http://bugs.ruby-lang.org/issues/4365 for more details
+    MISSES_ARRAY_NODE_FOR_WORDS = RUBY_VERSION < '1.9.2' ||
+      (RUBY_VERSION == '1.9.2' && RUBY_PATCHLEVEL < 320)
+
     HANDLERS = {
       # parser keywords
 
@@ -345,9 +350,15 @@ module Sorcerer
       :args_new => NOOP,
       :args_prepend => NYI,
       :array => lambda { |sexp|
-        emit("[")
-        resource(sexp[1]) if sexp[1]
-        emit("]")
+        if !MISSES_ARRAY_NODE_FOR_WORDS &&
+             sexp[1] &&
+             [:words_add, :qwords_add].include?(sexp[1].first)
+          resource(sexp[1])
+        else
+          emit("[")
+          resource(sexp[1]) if sexp[1]
+          emit("]")
+        end
       },
       :assign => lambda { |sexp|
         resource(sexp[1])
@@ -700,9 +711,16 @@ module Sorcerer
         end
       },
       :rescue_mod => lambda { |sexp|
-        resource(sexp[2])
+        if RUBY_VERSION <= '1.9.2'
+          # Pre ruby 1.9.3 these nodes were returned in the reverse order, see
+          # http://bugs.ruby-lang.org/issues/4716 for more details
+          first_node, second_node = sexp[2], sexp[1]
+        else
+          first_node, second_node = sexp[1], sexp[2]
+        end
+        resource(first_node)
         emit(" rescue ")
-        resource(sexp[1])
+        resource(second_node)
       },
       :rest_param => lambda { |sexp|
         emit("*")
@@ -798,6 +816,7 @@ module Sorcerer
       :var_alias => NYI,
       :var_field => PASS1,
       :var_ref => PASS1,
+      :vcall => PASS1,
       :void_stmt => NOOP,
       :when => lambda { |sexp|
         outdent do emit("when ") end

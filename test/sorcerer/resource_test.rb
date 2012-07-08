@@ -151,7 +151,7 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "meth &code"
     assert_resource "meth a, &code"
     assert_resource "meth a, *args, &code"
-    assert_resource "meth a, *args do |x| x.y end",
+    assert_resource "meth a, *args do |x| x.y end"
   end
 
   def test_can_source_method_with_bare_assoc
