@@ -7,6 +7,8 @@ p. Sorcerer is targetted mainly at small snippets of Ruby code,
 expressable in a single line.  Longer examples may be re-sourced, but
 they will be rendered in a single line format.
 
+*Version: 0.3.1*
+
 h2. Limitations
 
 Sorcerer is only testing on Ruby 1.9.
@@ -120,8 +122,16 @@ output emitted, then use the debug option:
 h2. History
 
 * 0.0.7 - Basic single line version
+
 * 0.1.0 - Added support for multi-line output. Improved rendering of a
-   number of constructs
+          number of constructs
+
 * 0.2.0 - Added support for indented output.
+
+* 0.3.0 - New hash literal support. Multi-line output always end with
+          a newline.
+
+* 0.3.1 - 1.9.3 support. Indenting stabby procs. RedCloth not required
+          for testing.
 
 
