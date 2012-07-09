@@ -68,12 +68,20 @@ class SourcerTest < Test::Unit::TestCase
       gsub(/#/,'  ') + "\n"
   end
 
+  def quietly
+    original_verbosity = $VERBOSE
+    $VERBOSE = nil
+    yield
+  ensure
+    $VERBOSE = original_verbosity
+  end
+
   def source(string, options={})
     if options[:debug]
       puts
       puts "***************************** options: #{options.inspect}"
     end
-    sexp = Ripper::SexpBuilder.new(string).parse
+    sexp = quietly { Ripper::SexpBuilder.new(string).parse }
     fail "Failed to parts '#{string}'" if sexp.nil?
     Sorcerer.source(sexp, options)
   end
@@ -623,7 +631,7 @@ class SourcerTest < Test::Unit::TestCase
   end
 
   def test_can_use_ripper_sexp_output
-    sexp = Ripper.sexp("a = 1")
+    sexp = quietly { Ripper.sexp("a = 1") }
     assert_equal "a = 1", Sorcerer.source(sexp)
   end
 
