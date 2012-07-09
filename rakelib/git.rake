@@ -1,4 +1,3 @@
-
 namespace "git" do
   desc "Tag the current version of the project as #{PROJ}-#{PKG_VERSION}"
   task :tag do
