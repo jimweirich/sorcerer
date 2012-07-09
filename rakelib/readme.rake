@@ -11,13 +11,11 @@ begin
 
   desc "Update the version in the readme"
   task :update_version do
-    require './lib/sorcerer/version'
     open("README.textile") do |ins|
       open("new_readme.txt", "w") do |outs|
         while line = ins.gets
           if line =~ /^\*Version: .*\*$/
-            puts "DBG: VERSION!"
-            line = "*Version: #{Sorcerer::VERSION}*"
+            line = "*Version: #{PKG_VERSION}*"
           end
           outs.puts line
         end
