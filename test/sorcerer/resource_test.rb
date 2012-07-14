@@ -33,9 +33,21 @@ class SourcerTest < Test::Unit::TestCase
   # string in single line and multi-line modes.
   #
   def assert_resource_lines(string, options={})
-    assert_resource_for_mode(string, options.merge(multiline: false)) { |s| for_single_line(s) }
-    assert_resource_for_mode(string, options.merge(multiline: true))  { |s| for_multi_line(s) }
-    assert_resource_for_mode(string, options.merge(indent: true))     { |s| for_indented(s) }
+    assert_resource_for_mode(
+      string,
+      options.merge(multiline: false)) { |s|
+      for_single_line(s)
+    }
+    assert_resource_for_mode(
+      string,
+      options.merge(multiline: true)) { |s|
+      for_multi_line(s)
+    }
+    assert_resource_for_mode(
+      string,
+      options.merge(indent: true)) { |s|
+      for_indented(s)
+    }
   end
 
   # Assert the string is correctly resourced given the options and the
@@ -81,7 +93,13 @@ class SourcerTest < Test::Unit::TestCase
       puts
       puts "***************************** options: #{options.inspect}"
     end
-    sexp = quietly { Ripper::SexpBuilder.new(string).parse }
+    sexp = quietly {
+      if options[:quick]
+        Ripper.sexp(string)
+      else
+        Ripper::SexpBuilder.new(string).parse
+      end
+    }
     fail "Failed to parts '#{string}'" if sexp.nil?
     Sorcerer.source(sexp, options)
   end
@@ -97,6 +115,12 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "A"
     assert_resource "Mod::X"
     assert_resource "Mod::NS::Y"
+  end
+
+  def test_can_source_keywords
+    assert_resource "true"
+    assert_resource "false"
+    assert_resource "nil"
   end
 
   def test_can_source_constant_definition
@@ -583,6 +607,13 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource_lines "def f(a); #x; #y; end"
   end
 
+  def test_can_source_def_self
+    assert_resource_lines "def self.f; end"
+    assert_resource_lines "def self.f(a, *args, &block); #x; #y; end"
+    assert_resource_lines "def Mod.f; end"
+    assert_resource_lines "def Mod.f(a, *args, &block); #x; #y; end"
+  end
+
   def test_can_source_class_without_parent
     assert_resource_lines "class X; end"
     assert_resource_lines "class X; #x; end"
@@ -628,11 +659,6 @@ class SourcerTest < Test::Unit::TestCase
   def test_can_source_then
     assert_resource_lines "Then {~#a == b~}"
     assert_resource_lines "Then {~#a == b; #x~}"
-  end
-
-  def test_can_use_ripper_sexp_output
-    sexp = quietly { Ripper.sexp("a = 1") }
-    assert_equal "a = 1", Sorcerer.source(sexp)
   end
 
   def test_can_handle_missing_statements

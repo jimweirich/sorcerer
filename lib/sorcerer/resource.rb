@@ -74,7 +74,6 @@ module Sorcerer
     end
 
     def resource(sexp)
-      sexp = sexp.first if nested_sexp?(sexp)
       fail NotSexpError, "Not an S-EXPER: #{sexp.inspect}" unless sexp?(sexp)
       handler = HANDLERS[sexp.first]
       raise NoHandlerError.new(sexp.first) unless handler
@@ -492,7 +491,16 @@ module Sorcerer
         resource(sexp[1])
         emit(")")
       },
-      :defs => NYI,
+      :defs => lambda { |sexp|
+        emit("def ")
+        resource(sexp[1])
+        resource(sexp[2])
+        resource(sexp[3])
+        opt_parens(sexp[4])
+        newline
+        indent do resource(sexp[5]) end
+        emit("end")
+      },
       :do_block => lambda { |sexp|
         emit_block(sexp, "do", "end")
       },
@@ -903,7 +911,7 @@ module Sorcerer
       :@lparen => NYI,
       :@nl => NYI,
       :@op => EMIT1,
-      :@period => NYI,
+      :@period => EMIT1,
       :@qwords_beg => NYI,
       :@rbrace => NYI,
       :@rbracket => NYI,
