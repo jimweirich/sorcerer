@@ -12,4 +12,5 @@ end
 
 require 'sorcerer/resource'
 require 'sorcerer/subexpression'
+require 'sorcerer/version'
 
