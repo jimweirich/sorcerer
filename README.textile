@@ -18,15 +18,15 @@ bq. <em>Technically, Sorcerer should work on Ruby 1.8, but since Ripper is
 
 h2. Links
 
-Documents::       "http://github.com/jimweirich/sorcerer":http://github.com/jimweirich/sorcerer
-Git Clone::       git://github.com/jimweirich/sorcerer.git
-Issue Tracking::  "http://www.pivotaltracker.com/projects/56858":http://www.pivotaltracker.com/projects/56858
-Bug Reporting::   "http://onestepback.org/cgi-bin/bugs.cgi?project=sorcerer":http://onestepback.org/cgi-bin/bugs.cgi?project=sorcerer
+Documents              :: http://github.com/jimweirich/sorcerer
+Git Clone              :: git://github.com/jimweirich/sorcerer.git
+Issues / Bug Tracking  :: https://github.com/jimweirich/sorcerer/issues
+Continuous Integration :: http://travis-ci.org/#!/jimweirich/sorcerer
 
 h2. Examples
 
 <pre style="background: LightGray">
-  sexp = [:binary, 
+  sexp = [:binary,
            [:var_ref, [:@ident, "a", [1, 0]]],
            :+,
            [:var_ref, [:@ident, "b", [1, 4]]]]
@@ -133,5 +133,3 @@ h2. History
 
 * 0.3.1 - 1.9.3 support. Indenting stabby procs. RedCloth not required
           for testing.
-
-
