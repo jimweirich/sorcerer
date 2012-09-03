@@ -242,7 +242,7 @@ module Sorcerer
     }
 
     def determine_regexp_delimiters(sexp)
-      sym, end_delim, other = sexp
+      sym, end_delim, _ = sexp
       fail UnexpectedSexpError, "Expected :@regexp_end, got #{sym.inspect}" unless sym == :@regexp_end
       end_delim_char = end_delim[0]
       first_delim = BALANCED_DELIMS[end_delim_char] || end_delim_char
