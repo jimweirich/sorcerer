@@ -367,6 +367,9 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "-1"
     assert_resource "+a"
     assert_resource "-a"
+    assert_resource "~a"
+    assert_resource "!a"
+    assert_resource "not a"
   end
 
   def test_can_source_binary_expressions

@@ -786,7 +786,10 @@ module Sorcerer
       :top_const_field => NYI,
       :top_const_ref => NYI,
       :unary => lambda { |sexp|
-        emit(sexp[1].to_s[0,1])
+        op = sexp[1].to_s
+        op = op[0,1] if op =~ /^.@$/
+        emit(op)
+        emit(" ") if op.size > 1
         resource(sexp[2])
       },
       :undef => lambda { |sexp|
