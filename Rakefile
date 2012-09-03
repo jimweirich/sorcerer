@@ -13,6 +13,8 @@ rescue Exception
   nil
 end
 
+CLEAN.include('pkg/sorcerer-*').exclude('pkg/*.gem')
+
 PROJ = 'sorcerer'
 RUBY = ENV['RUBY19'] || 'ruby19'
 PKG_VERSION = Sorcerer::VERSION
