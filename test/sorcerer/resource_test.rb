@@ -175,6 +175,24 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "obj.meth a, *args do |x| x.y end"
   end
 
+  def test_can_source_method_called_with_scope_op_without_parans
+    assert_resource "Const::meth"
+    assert_resource "Const::meth a"
+    assert_resource "Const::meth a, b"
+    assert_resource "Const::meth a, *b"
+    assert_resource "Const::meth a, *b, &block"
+  end
+
+  def xtest_can_source_method_called_with_scope_op_with_parens
+    # I don't think we get enough info to accurately resource these.
+    # All these calls come back with a period rather than a double
+    # colon.
+    assert_resource "Const::meth(a)"
+    assert_resource "Const::meth(a, b)"
+    assert_resource "Const::meth(a, *b)"
+    assert_resource "Const::meth(a, *b, &block)"
+  end
+
   def test_can_source_method_without_explicit_target
     assert_resource "meth(a)"
     assert_resource "meth(a, b)"
