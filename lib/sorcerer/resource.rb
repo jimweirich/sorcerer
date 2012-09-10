@@ -466,7 +466,13 @@ module Sorcerer
         emit(" ")
         resource(sexp[2])
       },
-      :command_call => NYI,
+      :command_call => lambda { |sexp|
+        resource(sexp[1])
+        emit(sexp[2])
+        resource(sexp[3])
+        emit(" ")
+        resource(sexp[4])
+      },
       :const_path_field => lambda { |sexp|
         resource(sexp[1])
         emit("::")

@@ -163,6 +163,18 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "obj.meth(a, *args, &code)"
   end
 
+  def test_can_source_method_call_without_parens
+    assert_resource "obj.meth a"
+    assert_resource "obj.meth a, b"
+    assert_resource "obj.meth a, b, c"
+    assert_resource "obj.meth *args"
+    assert_resource "obj.meth a, *args"
+    assert_resource "obj.meth &code"
+    assert_resource "obj.meth a, &code"
+    assert_resource "obj.meth a, *args, &code"
+    assert_resource "obj.meth a, *args do |x| x.y end"
+  end
+
   def test_can_source_method_without_explicit_target
     assert_resource "meth(a)"
     assert_resource "meth(a, b)"
