@@ -665,11 +665,11 @@ module Sorcerer
       },
       :mrhs_add_star => lambda { |sexp|
         resource(sexp[1])
-        emit(", ")
+        emit(", ") unless sexp[1] == [:mrhs_new]
         emit("*")
         resource(sexp[2])
       },
-      :mrhs_new => NYI,
+      :mrhs_new => NOOP,
       :mrhs_new_from_args => PASS1,
       :next => lambda { |sexp|
         emit("next")

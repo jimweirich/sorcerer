@@ -468,6 +468,8 @@ class SourcerTest < Test::Unit::TestCase
     assert_resource "a, b, *c = 1, 2, 3, 4"
     assert_resource "a, b, *c = 1, 2, *args"
     assert_resource "(a, b), *c = 1, 2, *args"
+    assert_resource "a = *b"
+    assert_resource "a = *[b, c]"
   end
 
   def test_can_source_statement_sequences
