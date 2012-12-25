@@ -61,8 +61,16 @@ class SubexpressionTest < Test::Unit::TestCase
   end
 
   def test_hash_literal
-    assert_subexpressions "{ :a => aa, :b => bb }", [
-      "{ :a => aa, :b => bb }", "aa", "bb"
+    assert_subexpressions "{ :a => aa, b => bb }", [
+      "{ :a => aa, b => bb }",
+      "aa",
+      "b",
+      "bb",
+    ]
+    assert_subexpressions "{ a: aa, b: bb }", [
+      "{ a: aa, b: bb }",
+      "aa",
+      "bb",
     ]
   end
 
@@ -100,6 +108,20 @@ class SubexpressionTest < Test::Unit::TestCase
   def test_nil_literals_are_omitted
     assert_subexpressions "a || nil", [
       "a || nil",
+      "a",
+    ]
+  end
+
+  def test_symbols_literals_are_omitted
+    assert_subexpressions "a || :x", [
+      "a || :x",
+      "a",
+    ]
+  end
+
+  def test_string_literals_are_omitted
+    assert_subexpressions "a || 'x'", [
+      "a || \"x\"",
       "a",
     ]
   end
