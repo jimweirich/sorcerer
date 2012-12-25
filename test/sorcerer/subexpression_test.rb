@@ -81,4 +81,37 @@ class SubexpressionTest < Test::Unit::TestCase
     ]
   end
 
+  def test_numeric_literals_are_omitted
+    assert_subexpressions "a+1", ["a + 1", "a"]
+  end
+
+  def test_boolean_literals_are_omitted
+    assert_subexpressions "a||true||false", [
+      "a || true || false",
+      "a || true",
+      "a",
+    ]
+  end
+
+  def test_nil_literals_are_omitted
+    assert_subexpressions "a || nil", [
+      "a || nil",
+      "a",
+    ]
+  end
+
+  def test_super_is_not_omitted
+    assert_subexpressions "a || super", [
+      "a || super",
+      "a",
+      "super",
+    ]
+    assert_subexpressions "a || super(b)", [
+      "a || super(b)",
+      "a",
+      "super(b)",
+      "b",
+    ]
+  end
+
 end
