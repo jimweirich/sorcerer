@@ -34,7 +34,7 @@ module Sorcerer
       case sexp.first
       when :var_ref
         list_sexp(sexp)
-      when :vcall, :binary, :array, :hash, :unary
+      when :vcall, :binary, :array, :hash, :unary, :defined
         @result << sexp
         list_sexp(sexp)
       when :aref

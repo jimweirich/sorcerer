@@ -70,6 +70,10 @@ class SubexpressionTest < Test::Unit::TestCase
     assert_subexpressions "a =~ /r/", ["a =~ /r/", "a"]
   end
 
+  def test_defined_is_not_omitted
+    assert_subexpressions "defined?(a)", ["defined?(a)", "a"]
+  end
+
   def test_complex_expression
     assert_subexpressions "o.f(a+b, c*d, x.y, z(k, 2, 3)) { xx }", [
       "o.f(a + b, c * d, x.y, z(k, 2, 3)) { xx }",
