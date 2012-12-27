@@ -51,7 +51,7 @@ class SubexpressionTest < Test::Unit::TestCase
   end
 
   def test_array_reference
-    assert_subexpressions "a[i]", ["a[i]", "i"]
+    assert_subexpressions "a[i]", ["a[i]", "a", "i"]
   end
 
   def test_array_literal

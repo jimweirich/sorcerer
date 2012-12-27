@@ -39,6 +39,7 @@ module Sorcerer
         list_sexp(sexp)
       when :aref
         @result << sexp
+        recur(sexp[1])
         recur(sexp[2])
       when :brace_block
         # ignore
