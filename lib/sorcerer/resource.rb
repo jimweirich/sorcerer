@@ -154,7 +154,7 @@ module Sorcerer
       false
     end
 
-    def params(normal_args, default_args, rest_args, unknown, block_arg)
+    def params(normal_args, default_args, rest_arg, unknown, keyw_args, opts_arg, block_arg)
       first = true
       if normal_args
         normal_args.each do |sx|
@@ -170,9 +170,22 @@ module Sorcerer
           resource(sx[1])
         end
       end
-      if rest_args
+      if rest_arg
         first = emit_separator(", ", first)
-        resource(rest_args)
+        resource(rest_arg)
+      end
+      if keyw_args
+        keyw_args.each do |sx|
+          first = emit_separator(", ", first)
+          resource(sx[0])
+          emit(" ")
+          resource(sx[1])
+        end
+      end
+      if opts_arg
+        first = emit_separator(", ", first)
+        emit("**")
+        emit(opts_arg[1])
       end
       if block_arg
         first = emit_separator(", ", first)
@@ -683,7 +696,11 @@ module Sorcerer
       },
       :param_error => NYI,
       :params => lambda { |sexp|
-        params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5])
+        if sexp.size == 8
+          params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5], sexp[6], sexp[7])
+        else
+          params(sexp[1], sexp[2], sexp[3], sexp[4],nil, nil, sexp[5])
+        end
       },
       :paren => lambda { |sexp|
         emit("(")
