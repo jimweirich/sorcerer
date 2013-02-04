@@ -15,10 +15,7 @@ they will be rendered in a single line format.
 
 ## Limitations
 
-Sorcerer is only testing on Ruby 1.9.
-
-<em>Technically, Sorcerer should work on Ruby 1.8, but since Ripper is
-1.9 I've only tried it on that platform.</em>
+Sorcerer is only tested on Ruby 1.9.
 
 ## Links
 
@@ -127,6 +124,8 @@ output emitted, then use the debug option:
 ```
 
 ## History
+
+* 0.3.9 - Support %i{} and %I{}.
 
 * 0.3.8 - Include constants in sub-expressions.
 
