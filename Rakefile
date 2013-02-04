@@ -20,7 +20,7 @@ RUBY = ENV['RUBY19'] || 'ruby19'
 PKG_VERSION = Sorcerer::VERSION
 
 PKG_FILES = FileList[
-  'README.textile',
+  'README.md',
   'Rakefile',
   'doc/*',
   'rakelib/*',
@@ -30,7 +30,6 @@ PKG_FILES = FileList[
 
 BASE_RDOC_OPTIONS = [
   '--line-numbers', '--inline-source',
-  '--main' , 'README.textile',
   '--title', 'Rake -- Ruby Make'
 ]
 
