@@ -4,7 +4,7 @@ require 'ripper'
 require 'pp'
 
 class SubexpressionTest < Test::Unit::TestCase
-  def assert_subexpressions code, subexpressions, debug=false
+  def assert_subexpressions(code, subexpressions, debug=false)
     sexp = Ripper::SexpBuilder.new(code).parse
     if debug
       pp sexp
@@ -137,6 +137,19 @@ class SubexpressionTest < Test::Unit::TestCase
       "a",
       "super(b)",
       "b",
+    ]
+  end
+
+  def test_constants_are_included
+    assert_subexpressions "a || A", [
+      "a || A",
+      "a",
+      "A",
+    ]
+    assert_subexpressions "A::B::C", [
+      "A::B::C",
+      "A::B",
+      "A",
     ]
   end
 

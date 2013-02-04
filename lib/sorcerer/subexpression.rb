@@ -46,8 +46,13 @@ module Sorcerer
       when :call, :method_add_block, :method_add_arg
         @result << sexp
         method_sexp(sexp)
+      when :const_path_ref
+        @result << sexp
+        recur(sexp[1])
       when :@kw
         # ignore
+      when :@const
+        @result << sexp
       when :zsuper, :super
         @result << sexp
         list_sexp(sexp)
