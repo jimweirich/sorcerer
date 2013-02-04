@@ -11,7 +11,7 @@ Sorcerer is targetted mainly at small snippets of Ruby code,
 expressable in a single line. Longer examples may be re-sourced, but
 they will be rendered in a single line format.
 
-*Version: 0.3.1*
+**Version: 0.3.7**
 
 ## Limitations
 
@@ -127,6 +127,21 @@ output emitted, then use the debug option:
 ```
 
 ## History
+
+* 0.3.8 - Include constants in sub-expressions.
+
+* 0.3.7 - Include array in sub-expressions.
+
+* 0.3.6 - Support 'defined?'. Suppress nil, true, false in
+          sub-expressions.
+
+* 0.3.5 - Add handler for mrhs_new.
+
+* 0.3.4 - Support 'meth a, b'.
+
+* 0.3.3 - Fix unary not.
+
+* 0.3.2 - Support 'def mod.method' syntax.
 
 * 0.3.1 - 1.9.3 support. Indenting stabby procs. RedCloth not required
           for testing.
