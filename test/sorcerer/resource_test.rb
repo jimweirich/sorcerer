@@ -284,8 +284,10 @@ class ResourceTest < Test::Unit::TestCase
   end
 
   def test_can_source_symbol_quotes
-    assert_resource "%i{a b}"
-    assert_resource "%I{a b}"
+    if RUBY_VERSION >= "2.0"
+      assert_resource "%i{a b}"
+      assert_resource "%I{a b}"
+    end
   end
 
   def test_can_source_range
