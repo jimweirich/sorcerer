@@ -1,4 +1,5 @@
+*.bak
 .DS_Store
+TAGS
 html
 pkg
-*.bak
