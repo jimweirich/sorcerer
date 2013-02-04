@@ -283,6 +283,11 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "/a/i"
   end
 
+  def test_can_source_symbol_quotes
+    assert_resource "%i{a b}"
+    assert_resource "%I{a b}"
+  end
+
   def test_can_source_range
     assert_resource "1..10"
     assert_resource "1...10"

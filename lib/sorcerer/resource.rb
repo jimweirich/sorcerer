@@ -193,10 +193,22 @@ module Sorcerer
       end
     end
 
+    def quoted_word_add?(sexp)
+      sexp &&
+        sexp[1] &&
+        [:words_add, :qwords_add, :qsymbols_add, :symbols_add].include?(sexp[1].first)
+    end
+
+    def quoted_word_new?(sexp)
+      sexp &&
+        sexp[1] &&
+        [:qwords_new, :words_new, :qsymbols_new, :symbols_new].include?(sexp[1].first)
+    end
+
     def words(marker, sexp)
       emit("%#{marker}{") if @word_level == 0
       @word_level += 1
-      if sexp[1] != [:qwords_new] && sexp[1] != [:words_new]
+      if !quoted_word_new?(sexp)
         resource(sexp[1])
         emit(" ")
       end
@@ -363,8 +375,7 @@ module Sorcerer
       :args_prepend => NYI,
       :array => lambda { |sexp|
         if !MISSES_ARRAY_NODE_FOR_WORDS &&
-             sexp[1] &&
-             [:words_add, :qwords_add].include?(sexp[1].first)
+            quoted_word_add?(sexp)
           resource(sexp[1])
         else
           emit("[")
@@ -709,6 +720,10 @@ module Sorcerer
       },
       :parse_error => NYI,
       :program => PASS1,
+      :qsymbols_add => lambda { |sexp|
+        words("i", sexp)
+      },
+      :qsymbols_new => NOOP,
       :qwords_add => lambda { |sexp|
         words("w", sexp)
       },
@@ -806,6 +821,10 @@ module Sorcerer
         resource(sexp[1])
       },
       :symbol_literal => PASS1,
+      :symbols_add => lambda { |sexp|
+        words("I", sexp)
+      },
+      :symbols_new => NOOP,
       :top_const_field => NYI,
       :top_const_ref => NYI,
       :unary => lambda { |sexp|
