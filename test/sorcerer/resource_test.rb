@@ -585,8 +585,12 @@ class ResourceTest < Test::Unit::TestCase
   if RUBY_VERSION >= "2.0.0"
     def test_can_source_ruby2_defs
       assert_resource_lines "def f(a, b=1, *args, c: 2, **opts, &block); end"
+      assert_resource_lines "def f a, b=1, *args, c: 2, **opts, &block; end"
       assert_resource_lines "def f(a, aa, b=1, bb=2, *args, c: 3, cc: 4, **opts, &block); end"
-      assert_resource_lines "def f*args, c: 3, cc: 4, **opts, &block); end"
+      assert_resource_lines "def f a, aa, b=1, bb=2, *args, c: 3, cc: 4, **opts, &block; end"
+      assert_resource_lines "def f(c: 3); end"
+      assert_resource_lines "def f(**opts); end"
+      assert_resource_lines "def f **opts; end"
     end
   end
 

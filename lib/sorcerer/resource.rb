@@ -118,7 +118,8 @@ module Sorcerer
       params = sexp[1] if sexp.first == :paren || sexp.first == :arg_paren
       (params[1].nil? || params[1].empty?) &&
         (params[2].nil? || params[2].empty?) &&
-        (params[3].nil? || params[3].empty?)
+        (params[3].nil? || params[3].empty?) &&
+        (params[6].nil? || params[6].empty?)
     end
 
     def opt_parens(sexp)
