@@ -116,7 +116,7 @@ module Sorcerer
     def params_are_empty?(sexp)
       params = sexp
       params = sexp[1] if sexp.first == :paren || sexp.first == :arg_paren
-      params[1].nil? || params[1].empty?
+      (params[1].nil? || params[1].empty?) && (params[2].nil? || params[2].empty?)
     end
 
     def opt_parens(sexp)
@@ -710,7 +710,7 @@ module Sorcerer
         if sexp.size == 8
           params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5], sexp[6], sexp[7])
         else
-          params(sexp[1], sexp[2], sexp[3], sexp[4],nil, nil, sexp[5])
+          params(sexp[1], sexp[2], sexp[3], sexp[4], nil, nil, sexp[5])
         end
       },
       :paren => lambda { |sexp|
