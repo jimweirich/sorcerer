@@ -567,12 +567,6 @@ class ResourceTest < Test::Unit::TestCase
   end
 
   def test_can_source_def
-    assert_resource_lines "def f; end"
-    assert_resource_lines "def f; #x; end"
-    assert_resource_lines "def f a; end"
-    assert_resource_lines "def f b=1; end"
-    assert_resource_lines "def f *args; end"
-    assert_resource_lines "def f &block; end"
     assert_resource_lines "def f(); end"
     assert_resource_lines "def f(a); end"
     assert_resource_lines "def f(a, b); end"
@@ -583,14 +577,28 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "def f(a); #x; #y; end"
   end
 
+  def test_can_source_def_without_parens
+    assert_resource_lines "def f; end"
+    assert_resource_lines "def f; #x; end"
+    assert_resource_lines "def f a; end"
+    assert_resource_lines "def f b=1; end"
+    assert_resource_lines "def f *args; end"
+    assert_resource_lines "def f &block; end"
+  end
+
   if RUBY_VERSION >= "2.0.0"
     def test_can_source_ruby2_defs
       assert_resource_lines "def f(a, b=1, *args, c: 2, **opts, &block); end"
-      assert_resource_lines "def f a, b=1, *args, c: 2, **opts, &block; end"
       assert_resource_lines "def f(a, aa, b=1, bb=2, *args, c: 3, cc: 4, **opts, &block); end"
-      assert_resource_lines "def f a, aa, b=1, bb=2, *args, c: 3, cc: 4, **opts, &block; end"
       assert_resource_lines "def f(c: 3); end"
       assert_resource_lines "def f(**opts); end"
+    end
+  end
+
+  if RUBY_VERSION >= "2.0.0"
+    def test_can_source_ruby2_defs_without_parens
+      assert_resource_lines "def f a, b=1, *args, c: 2, **opts, &block; end"
+      assert_resource_lines "def f a, aa, b=1, bb=2, *args, c: 3, cc: 4, **opts, &block; end"
       assert_resource_lines "def f **opts; end"
     end
   end
