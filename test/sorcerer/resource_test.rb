@@ -570,7 +570,8 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "def f; end"
     assert_resource_lines "def f; #x; end"
     assert_resource_lines "def f a; end"
-    assert_resource_lines "def f b=1; end", debug: true
+    assert_resource_lines "def f b=1; end"
+    assert_resource_lines "def f *args; end"
     assert_resource_lines "def f(); end"
     assert_resource_lines "def f(a); end"
     assert_resource_lines "def f(a, b); end"
@@ -585,6 +586,7 @@ class ResourceTest < Test::Unit::TestCase
     def test_can_source_ruby2_defs
       assert_resource_lines "def f(a, b=1, *args, c: 2, **opts, &block); end"
       assert_resource_lines "def f(a, aa, b=1, bb=2, *args, c: 3, cc: 4, **opts, &block); end"
+      assert_resource_lines "def f*args, c: 3, cc: 4, **opts, &block); end"
     end
   end
 
