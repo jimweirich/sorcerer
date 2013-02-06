@@ -20,6 +20,7 @@ module Sorcerer
       missing?(normal_args) &&
         missing?(default_args) &&
         missing?(rest_arg) &&
+        missing?(keyw_args) &&
         missing?(opts_arg) &&
         missing?(block_arg)
     end

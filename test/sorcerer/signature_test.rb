@@ -40,6 +40,43 @@ class SignatureTest < Test::Unit::TestCase
     end
   end
 
+  def test_empty_when_no_args
+    sig = signature_for("def foo(); end")
+    assert sig.empty?, "should be empty"
+  end
+
+  def test_not_empty_when_normal_args
+    sig = signature_for("def foo(a); end")
+    assert ! sig.empty?, "should not be empty"
+  end
+
+  def test_not_empty_when_default_args
+    sig = signature_for("def foo(b=1); end")
+    assert ! sig.empty?, "should not be empty"
+  end
+
+  def test_not_empty_when_rest_arg
+    sig = signature_for("def foo(*rest); end")
+    assert ! sig.empty?, "should not be empty"
+  end
+
+  if RUBY_VERSION >= "2.0"
+    def test_not_empty_when_keyword_args
+      sig = signature_for("def foo(c: 1); end")
+      assert ! sig.empty?, "should not be empty"
+    end
+
+    def test_not_empty_when_options_args
+      sig = signature_for("def foo(**opts); end")
+      assert ! sig.empty?, "should not be empty"
+    end
+  end
+
+  def test_not_empty_when_block_arg
+    sig = signature_for("def foo(&block); end")
+    assert ! sig.empty?, "should not be empty"
+  end
+
   private
 
   def signature_for(string)
