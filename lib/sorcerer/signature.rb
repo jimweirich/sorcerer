@@ -16,7 +16,19 @@ module Sorcerer
       end
     end
 
+    def empty?
+      missing?(normal_args) &&
+        missing?(default_args) &&
+        missing?(rest_arg) &&
+        missing?(opts_arg) &&
+        missing?(block_arg)
+    end
+
     private
+
+    def missing?(args)
+      args.nil? || args.empty?
+    end
 
     def ruby2_style_param_list?(sexp)
       sexp.size == 8

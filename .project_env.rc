@@ -1,4 +1,4 @@
 source ~/.rvm/scripts/rvm
 rvm use ruby-1.9.3-p194
-#rvm use ruby-2.0.0
+# rvm use ruby-2.0.0
 export RSPEC_COMMAND=rspec

@@ -116,11 +116,8 @@ module Sorcerer
     def params_are_empty?(sexp)
       params = sexp
       params = sexp[1] if sexp.first == :paren || sexp.first == :arg_paren
-      (params[1].nil? || params[1].empty?) &&
-        (params[2].nil? || params[2].empty?) &&
-        (params[3].nil? || params[3].empty?) &&
-        (params[6].nil? || params[6].empty?) &&
-        (params[7].nil? || params[7].empty?)
+      sig = Signature.new(params)
+      sig.empty?
     end
 
     def opt_parens(sexp)
@@ -158,42 +155,42 @@ module Sorcerer
       false
     end
 
-    def params(normal_args, default_args, rest_arg, unknown, keyw_args, opts_arg, block_arg)
+    def params(sig)
       first = true
-      if normal_args
-        normal_args.each do |sx|
+      if sig.normal_args
+        sig.normal_args.each do |sx|
           first = emit_separator(", ", first)
           resource(sx)
         end
       end
-      if default_args
-        default_args.each do |sx|
+      if sig.default_args
+        sig.default_args.each do |sx|
           first = emit_separator(", ", first)
           resource(sx[0])
           emit("=")
           resource(sx[1])
         end
       end
-      if rest_arg
+      if sig.rest_arg
         first = emit_separator(", ", first)
-        resource(rest_arg)
+        resource(sig.rest_arg)
       end
-      if keyw_args
-        keyw_args.each do |sx|
+      if sig.keyw_args
+        sig.keyw_args.each do |sx|
           first = emit_separator(", ", first)
           resource(sx[0])
           emit(" ")
           resource(sx[1])
         end
       end
-      if opts_arg
+      if sig.opts_arg
         first = emit_separator(", ", first)
         emit("**")
-        emit(opts_arg[1])
+        emit(sig.opts_arg[1])
       end
-      if block_arg
+      if sig.block_arg
         first = emit_separator(", ", first)
-        resource(block_arg)
+        resource(sig.block_arg)
       end
     end
 
@@ -711,11 +708,7 @@ module Sorcerer
       },
       :param_error => NYI,
       :params => lambda { |sexp|
-        if sexp.size == 8
-          params(sexp[1], sexp[2], sexp[3], sexp[4], sexp[5], sexp[6], sexp[7])
-        else
-          params(sexp[1], sexp[2], sexp[3], sexp[4], nil, nil, sexp[5])
-        end
+        params(Signature.new(sexp))
       },
       :paren => lambda { |sexp|
         emit("(")
