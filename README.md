@@ -11,7 +11,7 @@ Sorcerer is targetted mainly at small snippets of Ruby code,
 expressable in a single line. Longer examples may be re-sourced, but
 they will be rendered in a single line format.
 
-**Version: 0.3.7**
+**Version: 0.3.10**
 
 ## Limitations
 
