@@ -11,7 +11,7 @@ class SignatureTest < Test::Unit::TestCase
     assert_nil sig.normal_args
     assert_nil sig.default_args
     assert_nil sig.rest_arg
-    assert_nil sig.keyw_args
+    assert_nil sig.keyword_args
     assert_nil sig.opts_arg
     assert_nil sig.block_arg
   end
@@ -22,7 +22,7 @@ class SignatureTest < Test::Unit::TestCase
     assert_equal [[:@ident, "a", [1, 8]]], sig.normal_args
     assert_equal [[[:@ident, "b", [1, 11]], [:@int, "1", [1, 13]]]], sig.default_args
     assert_equal [:rest_param, [:@ident, "args", [1, 17]]], sig.rest_arg
-    assert_nil sig.keyw_args
+    assert_nil sig.keyword_args
     assert_nil sig.opts_arg
     assert_equal [:blockarg, [:@ident, "block", [1, 24]]], sig.block_arg
   end
@@ -34,7 +34,7 @@ class SignatureTest < Test::Unit::TestCase
       assert_equal [[:@ident, "a", [1, 8]]], sig.normal_args
       assert_equal [[[:@ident, "b", [1, 11]], [:@int, "1", [1, 13]]]], sig.default_args
       assert_equal [:rest_param, [:@ident, "args", [1, 17]]], sig.rest_arg
-      assert_equal [[[:@label, "c:", [1, 23]], [:@int, "2", [1, 26]]]], sig.keyw_args
+      assert_equal [[[:@label, "c:", [1, 23]], [:@int, "2", [1, 26]]]], sig.keyword_args
       assert_equal [:@ident, "opts", [1, 31]], sig.opts_arg
       assert_equal [:blockarg, [:@ident, "block", [1, 38]]], sig.block_arg
     end

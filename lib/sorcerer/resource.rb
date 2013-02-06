@@ -175,8 +175,8 @@ module Sorcerer
         first = emit_separator(", ", first)
         resource(sig.rest_arg)
       end
-      if sig.keyw_args
-        sig.keyw_args.each do |sx|
+      if sig.keyword_args
+        sig.keyword_args.each do |sx|
           first = emit_separator(", ", first)
           resource(sx[0])
           emit(" ")
