@@ -11,6 +11,6 @@ module Sorcerer
 end
 
 require 'sorcerer/resource'
+require 'sorcerer/signature'
 require 'sorcerer/subexpression'
 require 'sorcerer/version'
-
