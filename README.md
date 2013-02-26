@@ -123,6 +123,11 @@ output emitted, then use the debug option:
   puts Sorcerer.source(sexp, debug: true)
 ```
 
+## License
+
+Sorcerer is available under the terms of the MIT license. See the
+MIT-LICENSE file for details.
+
 ## History
 
 * 0.3.9 - Support %i{} and %I{}.
