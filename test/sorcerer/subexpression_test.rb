@@ -4,9 +4,10 @@ require 'ripper'
 require 'pp'
 
 class SubexpressionTest < Test::Unit::TestCase
-  def assert_subexpressions(code, subexpressions, debug=false)
+  def assert_subexpressions(code, subexpressions, options={})
     sexp = Ripper::SexpBuilder.new(code).parse
-    if debug
+    if options[:debug]
+      puts "CODE: <#{code}>"
       pp sexp
     end
     subs = Sorcerer.subexpressions(sexp)
@@ -32,7 +33,9 @@ class SubexpressionTest < Test::Unit::TestCase
 
   def test_method_calls_without_args
     assert_subexpressions "o.f", ["o.f", "o"]
+    assert_subexpressions "f",   ["f"]
     assert_subexpressions "f()", ["f()"]
+    assert_subexpressions "F()", ["F()"]
   end
 
   def test_method_calls_with_args

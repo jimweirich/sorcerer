@@ -34,18 +34,30 @@ module Sorcerer
       case sexp.first
       when :var_ref
         list_sexp(sexp)
-      when :vcall, :binary, :array, :hash, :unary, :defined
+      when :vcall               # [:vcall, target]
+        @result << sexp
+      when :fcall               # [:fcall, target]
+        # ignore
+      when :call                # [:call, target, ".", meth]
+        @result << sexp
+        recur(sexp[3])
+        recur(sexp[1])
+      when :method_add_arg      # [:method_add_arg, call, args]
+        @result << sexp
+        recur(sexp[2])
+        within_method_sexp(sexp[1])
+      when :method_add_block    # [:method_add_block, call, block]
+        @result << sexp
+        within_method_sexp(sexp[1])
+      when :binary, :array, :hash, :unary, :defined
         @result << sexp
         list_sexp(sexp)
       when :aref
         @result << sexp
         recur(sexp[1])
         recur(sexp[2])
-      when :brace_block
+      when :brace_block         # [:brace_block, nil, statments]
         # ignore
-      when :call, :method_add_block, :method_add_arg
-        @result << sexp
-        method_sexp(sexp)
       when :const_path_ref
         @result << sexp
         recur(sexp[1])
@@ -61,15 +73,17 @@ module Sorcerer
       end
     end
 
-    def method_sexp(sexp)
+    # When already handling a method call, we don't need to recur on
+    # some items.
+    def within_method_sexp(sexp)
       case sexp.first
-      when :call
+      when :call                # [:call, target, ".", meth]
         recur(sexp[1])
-      when :method_add_block
-        method_sexp(sexp[1])
-      when :method_add_arg
+      when :method_add_block    # [:method_add_block, call, block]
+        within_method_sexp(sexp[1])
+      when :method_add_arg      # [:method_add_arg, call, args]
         recur(sexp[2])
-        method_sexp(sexp[1])
+        within_method_sexp(sexp[1])
       else
         recur(sexp)
       end

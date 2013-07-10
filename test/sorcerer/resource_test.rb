@@ -117,6 +117,7 @@ class ResourceTest < Test::Unit::TestCase
     # I don't think we get enough info to accurately resource these.
     # All these calls come back with a period rather than a double
     # colon.
+    skip "Can't resource methods calls with ::"
     assert_resource "Const::meth(a)"
     assert_resource "Const::meth(a, b)"
     assert_resource "Const::meth(a, *b)"
@@ -134,7 +135,14 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "meth(a, *args, &code)"
   end
 
-  def test_can_source_method_without_explicit_poetry_mode
+  def test_can_source_capitalized_method_without_explicit_target
+    assert_resource "Meth()"
+    assert_resource "Meth a"
+    assert_resource "Meth(a)"
+    assert_resource "Meth { a }"
+  end
+
+  def test_can_source_method_without_explicit_target_in_poetry_mode
     assert_resource "meth a"
     assert_resource "meth a, b"
     assert_resource "meth a, b, c"
@@ -584,6 +592,10 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "def f b=1; end"
     assert_resource_lines "def f *args; end"
     assert_resource_lines "def f &block; end"
+  end
+
+  def test_can_source_capitalized_def
+    assert_resource_lines "def F(); end"
   end
 
   if RUBY_VERSION >= "2.0.0"
