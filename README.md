@@ -11,11 +11,11 @@ Sorcerer is targetted mainly at small snippets of Ruby code,
 expressable in a single line. Longer examples may be re-sourced, but
 they will be rendered in a single line format.
 
-**Version: 0.3.10**
+**Version: 0.3.11**
 
 ## Limitations
 
-Sorcerer is only tested on Ruby 1.9.
+Sorcerer is only tested on Ruby 1.9 and 2.0.
 
 ## Links
 
@@ -129,6 +129,10 @@ Sorcerer is available under the terms of the MIT license. See the
 MIT-LICENSE file for details.
 
 ## History
+
+* 0.3.11 - Fix support for subexpressions involving Meth() calls.
+
+* 0.3.10 - Fix several issues with spaces in argument lists.
 
 * 0.3.9 - Support %i{} and %I{}.
 
