@@ -130,6 +130,9 @@ MIT-LICENSE file for details.
 
 ## History
 
+* 1.0.1 - Add support for missing exception class or variable in
+          rescue (from Trent Ogren).
+
 * 1.0.0 - Ready for the work, version 1!
 
 * 0.3.11 - Fix support for subexpressions involving Meth() calls.
