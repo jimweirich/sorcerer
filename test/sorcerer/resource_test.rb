@@ -276,6 +276,7 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "/[a-z]/"
     assert_resource "/\[a-z\]/"
     assert_resource '/#{name}/'
+    assert_resource '/before #{name} after/'
   end
 
   def test_can_source_regular_expressions_with_alternate_delimiters

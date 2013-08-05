@@ -284,6 +284,7 @@ module Sorcerer
     SPACE = lambda { |sexp| emit(" ") }
     PASS1 = lambda { |sexp| resource(sexp[1]) }
     PASS2 = lambda { |sexp| resource(sexp[2]) }
+    PASSBOTH = lambda { |sexp| resource(sexp[1]); resource(sexp[2]) }
     EMIT1 = lambda { |sexp| emit(sexp[1]) }
 
     # Earlier versions of ripper miss array node for words, see
@@ -649,14 +650,8 @@ module Sorcerer
         emit(" = ")
         resource(sexp[2])
       },
-      :method_add_arg => lambda { |sexp|
-        resource(sexp[1])
-        resource(sexp[2])
-      },
-      :method_add_block => lambda { |sexp|
-        resource(sexp[1])
-        resource(sexp[2])
-      },
+      :method_add_arg => PASSBOTH,
+      :method_add_block => PASSBOTH,
       :mlhs_add => lambda { |sexp|
         resource(sexp[1])
         emit(", ") unless sexp[1] == [:mlhs_new]
@@ -728,13 +723,14 @@ module Sorcerer
       :redo => lambda { |sexp|
         emit("redo")
       },
-      :regexp_add => PASS2,
+      :regexp_add => PASSBOTH,
       :regexp_literal => lambda { |sexp|
         delims = determine_regexp_delimiters(sexp[2])
         emit(delims[0])
         resource(sexp[1])
         emit(delims[1])
       },
+      :regexp_new => NOOP,
       :rescue => lambda { |sexp|
         outdent do emit("rescue") end
         if sexp[1]                # Exception list
@@ -788,10 +784,7 @@ module Sorcerer
         resource(sexp[2]) if sexp[2]
       },
       :stmts_new => NOOP,
-      :string_add => lambda { |sexp|
-        resource(sexp[1])
-        resource(sexp[2])
-      },
+      :string_add => PASSBOTH,
       :string_concat => lambda { |sexp|
         resource(sexp[1])
         emit(" ")
@@ -901,10 +894,7 @@ module Sorcerer
         words("W", sexp)
       },
       :words_new => NOOP,
-      :xstring_add => lambda { |sexp|
-        resource(sexp[1])
-        resource(sexp[2])
-      },
+      :xstring_add => PASSBOTH,
       :xstring_literal => lambda { |sexp|
         emit('"')
         resource(sexp[1])
