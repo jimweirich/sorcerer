@@ -432,6 +432,8 @@ class ResourceTest < Test::Unit::TestCase
 
   def test_can_source_begin_rescue_end
     assert_resource_lines "begin~rescue; end"
+    assert_resource_lines "begin~rescue E; #b; end"
+    assert_resource_lines "begin~rescue => ex; #b; end"
     assert_resource_lines "begin~rescue E => ex; #b; end"
     assert_resource_lines "begin~#a; rescue E => ex; #b; end"
     assert_resource_lines "begin~#a; rescue E, F => ex; #b; end"
@@ -448,6 +450,8 @@ class ResourceTest < Test::Unit::TestCase
 
   def test_can_source_begin_rescue_ensure_end
     assert_resource_lines "begin~rescue; end"
+    assert_resource_lines "begin~rescue E; #b; ensure~#c; end"
+    assert_resource_lines "begin~rescue => ex; #b; ensure~#c; end"
     assert_resource_lines "begin~rescue E => ex; #b; ensure~#c; end"
     assert_resource_lines "begin~#a; rescue E => ex; #b; ensure~#c; end"
     assert_resource_lines "begin~#a; rescue E, F => ex; #b; ensure~#c; end"

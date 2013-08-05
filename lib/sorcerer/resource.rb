@@ -744,6 +744,8 @@ module Sorcerer
           else
             resource(sexp[1].first)
           end
+        end
+        if sexp[2]
           emit(" => ")
           resource(sexp[2])
         end
