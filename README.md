@@ -130,6 +130,8 @@ MIT-LICENSE file for details.
 
 ## History
 
+* 1.0.2 - Fix bug in interpolated regular expression resourcing.
+
 * 1.0.1 - Add support for missing exception class or variable in
           rescue (from Trent Ogren).
 
