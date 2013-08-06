@@ -45,6 +45,7 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "A"
     assert_resource "Mod::X"
     assert_resource "Mod::NS::Y"
+    assert_resource "::Mod::NS::Y"
   end
 
   def test_can_source_keywords
@@ -55,8 +56,10 @@ class ResourceTest < Test::Unit::TestCase
 
   def test_can_source_constant_definition
     assert_resource "X = 1"
+    assert_resource "::X = 1"
     assert_resource "X::Y = 1"
     assert_resource "X::Y::Z = 1"
+    assert_resource "::X::Y::Z = 1"
   end
 
   def test_can_source_instance_variables
@@ -219,6 +222,11 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "3.14"
   end
 
+  def test_can_source_chars
+    assert_resource "?/"
+    assert_resource "?q"
+  end
+
   def test_can_source_strings
     assert_resource '"HI"'
     assert_equal '"HI"', source("'HI'")
@@ -232,6 +240,11 @@ class ResourceTest < Test::Unit::TestCase
   def test_can_source_interpolated_strings
     assert_resource '"my name is #{name}"'
     assert_resource '"my name is #{x.a("B")}"'
+  end
+
+  def test_can_source_string_dvars
+    assert_resource '"my program is #$0"'
+    assert_resource '"my global is #$glob"'
   end
 
   def test_can_source_string_concat
@@ -346,6 +359,11 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "~a"
     assert_resource "!a"
     assert_resource "not a"
+  end
+
+  def test_can_source_backreferences
+    assert_resource "$1"
+    assert_resource "$9"
   end
 
   def test_can_source_binary_expressions
@@ -513,6 +531,7 @@ class ResourceTest < Test::Unit::TestCase
   end
 
   def test_can_source_case
+    assert_resource_lines "case~when b; #c; end"
     assert_resource_lines "case a~when b; #c; end"
     assert_resource_lines "case a~when b; #c when d; #e; end"
     assert_resource_lines "case a~when b; #c when d; #e~else~#f; end"
@@ -584,10 +603,12 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "def f(a); end"
     assert_resource_lines "def f(a, b); end"
     assert_resource_lines "def f(a, b=1); end"
+    assert_resource_lines "def f(a, *); end"
     assert_resource_lines "def f(a, *args); end"
     assert_resource_lines "def f(a, *args, &block); end"
     assert_resource_lines "def f(a); #x; end"
     assert_resource_lines "def f(a); #x; #y; end"
+    assert_resource_lines "def `(a); end"
   end
 
   def test_can_source_def_without_parens
