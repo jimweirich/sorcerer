@@ -464,8 +464,11 @@ module Sorcerer
         resource(sexp[3]) unless sexp[3] == :call
       },
       :case => lambda { |sexp|
-        emit("case ")
-        resource(sexp[1])
+        emit("case")
+        if sexp[1]
+          emit(" ")
+          resource(sexp[1])
+        end
         soft_newline
         indent do
           resource(sexp[2])
@@ -765,7 +768,7 @@ module Sorcerer
       },
       :rest_param => lambda { |sexp|
         emit("*")
-        resource(sexp[1])
+        resource(sexp[1]) if sexp[1]
       },
       :retry => lambda { |sexp|
         emit("retry")
@@ -801,7 +804,10 @@ module Sorcerer
         resource(sexp[2])
       },
       :string_content => NOOP,
-      :string_dvar => NYI,
+      :string_dvar => lambda { |sexp|
+        emit('#')
+        resource(sexp[1])
+      },
       :string_embexpr => lambda { |sexp|
         emit('#{')
         resource(sexp[1])
@@ -825,8 +831,10 @@ module Sorcerer
         words("I", sexp)
       },
       :symbols_new => NOOP,
-      :top_const_field => NYI,
-      :top_const_ref => NYI,
+      :top_const_ref => lambda { |sexp|
+        emit("::")
+        resource(sexp[1])
+      },
       :unary => lambda { |sexp|
         op = sexp[1].to_s
         op = op[0,1] if op =~ /^.@$/
@@ -924,10 +932,10 @@ module Sorcerer
 
       # Scanner keywords
 
-      :@CHAR => NYI,
+      :@CHAR => EMIT1,
       :@__end__ => NYI,
-      :@backref => NYI,
-      :@backtick => NYI,
+      :@backref => EMIT1,
+      :@backtick => EMIT1,
       :@comma => NYI,
       :@comment => NYI,
       :@const => EMIT1,
@@ -972,6 +980,7 @@ module Sorcerer
       :@words_sep => NYI,
     }
     HANDLERS[:bodystmt] = HANDLERS[:body_stmt]
+    HANDLERS[:top_const_field] = HANDLERS[:top_const_ref]
   end
 
 end
