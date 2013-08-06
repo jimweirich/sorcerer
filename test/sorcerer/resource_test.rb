@@ -650,6 +650,12 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "class X; #def f(); #end; #private :f; end"
   end
 
+  def test_can_source_sclass
+    assert_resource_lines "class << self; end"
+    assert_resource_lines "class << a; end"
+    assert_resource_lines "class << self; #x; end"
+  end
+
   def test_can_source_module
     assert_resource_lines "module X; end"
     assert_resource_lines "module X; #x; end"
