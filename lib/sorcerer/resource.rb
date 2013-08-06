@@ -932,7 +932,7 @@ module Sorcerer
 
       :@CHAR => NYI,
       :@__end__ => NYI,
-      :@backref => NYI,
+      :@backref => EMIT1,
       :@backtick => NYI,
       :@comma => NYI,
       :@comment => NYI,

@@ -349,6 +349,11 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "not a"
   end
 
+  def test_can_source_backreferences
+    assert_resource "$1"
+    assert_resource "$9"
+  end
+
   def test_can_source_binary_expressions
     assert_resource "a + 1"
     assert_resource "a + b"
