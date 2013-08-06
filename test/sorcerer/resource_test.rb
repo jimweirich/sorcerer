@@ -45,6 +45,7 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "A"
     assert_resource "Mod::X"
     assert_resource "Mod::NS::Y"
+    assert_resource "::Mod::NS::Y"
   end
 
   def test_can_source_keywords

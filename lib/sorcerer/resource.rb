@@ -826,7 +826,10 @@ module Sorcerer
       },
       :symbols_new => NOOP,
       :top_const_field => NYI,
-      :top_const_ref => NYI,
+      :top_const_ref => lambda { |sexp|
+        emit("::")
+        resource(sexp[1])
+      },
       :unary => lambda { |sexp|
         op = sexp[1].to_s
         op = op[0,1] if op =~ /^.@$/
