@@ -777,7 +777,15 @@ module Sorcerer
       :return0 => lambda { |sexp|
         emit("return")
       },
-      :sclass => NYI,
+      :sclass => lambda { |sexp|
+        emit("class << ")
+        resource(sexp[1])
+        newline
+        indent do
+          resource(sexp[2]) unless void?(sexp[2])
+        end
+        emit("end")
+      },
       :stmts_add => lambda { |sexp|
         if sexp[1] != [:stmts_new] && ! void?(sexp[1])
           resource(sexp[1])
