@@ -768,7 +768,7 @@ module Sorcerer
       },
       :rest_param => lambda { |sexp|
         emit("*")
-        resource(sexp[1])
+        resource(sexp[1]) if sexp[1]
       },
       :retry => lambda { |sexp|
         emit("retry")

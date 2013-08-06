@@ -591,6 +591,7 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "def f(a); end"
     assert_resource_lines "def f(a, b); end"
     assert_resource_lines "def f(a, b=1); end"
+    assert_resource_lines "def f(a, *); end"
     assert_resource_lines "def f(a, *args); end"
     assert_resource_lines "def f(a, *args, &block); end"
     assert_resource_lines "def f(a); #x; end"
