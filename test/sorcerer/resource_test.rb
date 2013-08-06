@@ -601,6 +601,7 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource_lines "def f(a, *args, &block); end"
     assert_resource_lines "def f(a); #x; end"
     assert_resource_lines "def f(a); #x; #y; end"
+    assert_resource_lines "def `(a); end"
   end
 
   def test_can_source_def_without_parens
