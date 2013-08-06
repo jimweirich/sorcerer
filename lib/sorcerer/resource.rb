@@ -930,7 +930,7 @@ module Sorcerer
 
       # Scanner keywords
 
-      :@CHAR => NYI,
+      :@CHAR => EMIT1,
       :@__end__ => NYI,
       :@backref => EMIT1,
       :@backtick => NYI,

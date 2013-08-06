@@ -220,6 +220,11 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "3.14"
   end
 
+  def test_can_source_chars
+    assert_resource "?/"
+    assert_resource "?q"
+  end
+
   def test_can_source_strings
     assert_resource '"HI"'
     assert_equal '"HI"', source("'HI'")
