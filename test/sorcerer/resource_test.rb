@@ -514,6 +514,7 @@ class ResourceTest < Test::Unit::TestCase
   end
 
   def test_can_source_case
+    assert_resource_lines "case~when b; #c; end"
     assert_resource_lines "case a~when b; #c; end"
     assert_resource_lines "case a~when b; #c when d; #e; end"
     assert_resource_lines "case a~when b; #c when d; #e~else~#f; end"

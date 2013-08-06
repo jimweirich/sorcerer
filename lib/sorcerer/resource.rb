@@ -464,8 +464,11 @@ module Sorcerer
         resource(sexp[3]) unless sexp[3] == :call
       },
       :case => lambda { |sexp|
-        emit("case ")
-        resource(sexp[1])
+        emit("case")
+        if sexp[1]
+          emit(" ")
+          resource(sexp[1])
+        end
         soft_newline
         indent do
           resource(sexp[2])
