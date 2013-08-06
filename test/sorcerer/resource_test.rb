@@ -240,6 +240,11 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource '"my name is #{x.a("B")}"'
   end
 
+  def test_can_source_string_dvars
+    assert_resource '"my program is #$0"'
+    assert_resource '"my global is #$glob"'
+  end
+
   def test_can_source_string_concat
     assert_resource '"a" "b"'
     assert_resource '"a" "b" "c"'

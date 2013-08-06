@@ -804,7 +804,10 @@ module Sorcerer
         resource(sexp[2])
       },
       :string_content => NOOP,
-      :string_dvar => NYI,
+      :string_dvar => lambda { |sexp|
+        emit('#')
+        resource(sexp[1])
+      },
       :string_embexpr => lambda { |sexp|
         emit('#{')
         resource(sexp[1])
