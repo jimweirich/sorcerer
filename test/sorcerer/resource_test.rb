@@ -56,8 +56,10 @@ class ResourceTest < Test::Unit::TestCase
 
   def test_can_source_constant_definition
     assert_resource "X = 1"
+    assert_resource "::X = 1"
     assert_resource "X::Y = 1"
     assert_resource "X::Y::Z = 1"
+    assert_resource "::X::Y::Z = 1"
   end
 
   def test_can_source_instance_variables

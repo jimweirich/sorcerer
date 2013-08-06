@@ -831,7 +831,6 @@ module Sorcerer
         words("I", sexp)
       },
       :symbols_new => NOOP,
-      :top_const_field => NYI,
       :top_const_ref => lambda { |sexp|
         emit("::")
         resource(sexp[1])
@@ -981,6 +980,7 @@ module Sorcerer
       :@words_sep => NYI,
     }
     HANDLERS[:bodystmt] = HANDLERS[:body_stmt]
+    HANDLERS[:top_const_field] = HANDLERS[:top_const_ref]
   end
 
 end
