@@ -374,6 +374,10 @@ class ResourceTest < Test::Unit::TestCase
     assert_resource "a / b"
     assert_resource "a && b"
     assert_resource "a || b"
+    assert_resource "a < b"
+    assert_resource "a <= b"
+    assert_resource "a > b"
+    assert_resource "a >= b"
   end
 
   def test_can_source_trinary_expressions
