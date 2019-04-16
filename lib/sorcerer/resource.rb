@@ -460,7 +460,7 @@ module Sorcerer
       },
       :call => lambda { |sexp|
         resource(sexp[1])
-        emit(sexp[2])
+        resource(sexp[2])
         resource(sexp[3]) unless sexp[3] == :call
       },
       :case => lambda { |sexp|
